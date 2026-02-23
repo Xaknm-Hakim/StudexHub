@@ -1,1 +1,153 @@
+body {
+    font-family: Cascadia Code;
+    background-color: #11120D;
+    color: white;
+    text-align: center;
+    margin: 50px;
+}
 
+.mainContent a {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 10px 100px;
+    background-color:white;
+    color: black;
+    text-decoration: none;
+    border-radius: 10px;
+    margin: 6px
+}
+
+.mainContent a:hover {
+    background-color: gray;
+    font-weight: bold;
+}
+
+.abtUS {
+    font-family: Cascadia Code;
+    background-color: #11120D;
+    color: white;
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.abtUS p {
+    margin: 15px;
+    margin-bottom: 35px;
+    font-size: small;
+}
+
+.academicTrack {
+    font-family: Cascadia Code;
+    background-color: #111;
+    color: white;
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+/* Heading */
+.academicTrack h2 {
+    margin-bottom: 20px;
+    font-weight: normal;
+    letter-spacing: 1px;
+}
+
+/* Dropdown */
+select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* Dropdown focus */
+select:focus {
+    outline: none;
+    border-color: #ffffff;
+}
+
+/* Primary button inside aca.academicTrack */
+.academicTrack button {
+    width: 100%;
+    padding: 10px;
+    background-color: #ffffff;
+    color: #000000;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+/* Hover effect */
+.academicTrack button:hover {
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+}
+.backHome {
+
+    margin-top: auto;
+    background-color: #FFFBF4;
+    color: #11120D;
+    padding: 40px;
+    border-radius: 6px;
+    width: 400px;
+    width: 86%;
+    text-align: center;
+    border-color: #ffffff;
+
+}
+
+.backHome button {
+    
+    align-items: center;
+    padding: 8px 16px;
+    background-color: white;
+    border: 2px solid #000000;
+    color: #000000;
+    cursor: pointer;
+    transition: 0.3s ease;
+    border-radius: 6px;
+    width: 100%;
+}
+
+.backHome button:hover {
+
+    background-color: black;
+    color: #ffffff;
+    border: 1px solid white
+}
+
+.abtBody {
+    height: 100%;
+    margin: 0;
+}
+
+.page-wrapper {
+
+    align-items: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.profileOne {
+    width: 300px;
+    max-width: 100px;
+    height: auto;
+    border: 2px solid white;
+    border-radius: 50%;
+    padding: 5px;
+
+}
+
+.profiles p {
+color: white;
+}
