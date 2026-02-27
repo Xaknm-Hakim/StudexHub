@@ -13,17 +13,27 @@ export default function LoginPage() {
   const [invite, setInvite] = useState<string>("");
 
   
-  function handleSubmit() {
-    localStorage.setItem("name", name);
-    console.log ({
+ async function handleSignup() {
+  const res = await fetch("/api/signup", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
       name,
       email,
-      pass,
-      invite,
-    });
-  
+      password: pass,     // backend expects "password"
+      inviteCode: invite, // backend expects "inviteCode"
+    }),
+  });
 
-  router.push("/login");
+  const data = await res.json();
+
+  if (res.ok) {
+    router.push("/login"); // after signup, go to login
+  } else {
+    alert(data.error);
+  }
 }
 
   return (
@@ -64,7 +74,7 @@ export default function LoginPage() {
       />
 
       <button
-        onClick={handleSubmit}
+        onClick={handleSignup}
         className="w-full border border-white/20 hover:bg-white hover:text-black transition py-3 rounded"
       >
         Submit
