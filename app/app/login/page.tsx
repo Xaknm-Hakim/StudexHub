@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [pass, setPass] = useState<string>("");
 
 async function handleLogin() {
-  const res = await fetch("/api/login", {
+  const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
