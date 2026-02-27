@@ -10,18 +10,26 @@ export default function LoginPage() {
   const [email, setEmail] = useState<string>("");
   const [pass, setPass] = useState<string>("");
 
-  function handleLogin() {
-    console.log({ 
+async function handleLogin() {
+  const res = await fetch("/api/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password: pass, // match backend field name
+    }),
+  });
 
-      email, 
-      pass
+  const data = await res.json();
 
-    });
-
-    // pretend backend validated
+  if (res.ok) {
     router.push("/dashboard");
+  } else {
+    alert(data.error);
   }
-
+}
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-black text-white">
       <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl space-y-4">
