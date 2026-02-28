@@ -7,15 +7,15 @@ datasource db {
 }
 
 model User {
-  id           String      @id @default(cuid())
-  email        String      @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   name         String?
   passwordHash String
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  semesters    Semester[]
-  assignments  Assignment[]
+  semesters   Semester[]
+  assignments Assignment[]
 }
 
 model Semester {
@@ -26,8 +26,8 @@ model Semester {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courses   Course[]
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses Course[]
 
   @@index([userId])
 }
@@ -42,34 +42,53 @@ model Course {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
+  assignments Assignment[]
 
   @@index([semesterId])
 }
 
-model Assignment {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  dueDate   DateTime
-  status    String   @default("PENDING")
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum AssignmentStatus {
+  PENDING
+  DONE
+}
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum AssignmentPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Assignment {
+  id          String             @id @default(cuid())
+  userId      String
+  courseId    String? // optional for MVP, but recommended
+  title       String
+  dueDate     DateTime
+  status      AssignmentStatus   @default(PENDING)
+  priority    AssignmentPriority @default(MEDIUM)
+  notes       String?
+  completedAt DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@index([userId, dueDate])
+  @@index([userId, status])
+  @@index([courseId])
 }
 
 model InviteCode {
-  id           String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  codeId       String   @unique         // public identifier like A7KQ2F
-  codeHash     String                   // sha256(OTP + pepper) (or just sha256(OTP) for MVP)
+  codeId   String @unique // public identifier like A7KQ2F
+  codeHash String // sha256(OTP + pepper) (or just sha256(OTP) for MVP)
 
-  attemptCount Int      @default(0)
-  createdAt    DateTime @default(now())
+  attemptCount Int       @default(0)
+  createdAt    DateTime  @default(now())
   expiresAt    DateTime
   usedAt       DateTime?
   lockedAt     DateTime?
