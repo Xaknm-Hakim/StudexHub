@@ -39,3 +39,23 @@ export async function verifySession(token: string) {
 
   return { sub, email, name: typeof name === "string" ? name : null };
 }
+
+import { cookies } from "next/headers";
+import { SESSION_COOKIE } from "@/src/lib/cookies";
+
+export async function getSession() {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+
+  try {
+    return await verifySession(token);
+  } catch {
+    return null;
+  }
+}
+
+export async function requireUserId() {
+  const session = await getSession();
+  if (!session?.sub) throw new Error("UNAUTHORIZED");
+  return session.sub;
+}
