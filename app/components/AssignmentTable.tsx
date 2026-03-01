@@ -1,10 +1,20 @@
 "use client";
 
 type Assignment = {
-  id: number;
+  id: string;
   title: string;
-  course: string;
   dueDate: string;
+  status: "PENDING" | "DONE";
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  notes: string | null;
+  daysLeft: number;
+  dueStatus: "OVERDUE" | "DUE_TODAY" | "DUE_IN_X_DAYS";
+  course: {
+    id: string;
+    name: string;
+    code: string | null;
+    credit: number;
+  } | null;
 };
 
 export default function AssignmentTable({
@@ -13,25 +23,22 @@ export default function AssignmentTable({
   onEdit,
 }: {
   assignments: Assignment[];
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onEdit: (assignment: Assignment) => void;
 }) {
-  const today = new Date();
 
-  const getStatusBadge = (dueDate: string) => {
-    const due = new Date(dueDate);
-    const diffTime = due.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const getStatusBadge = (assignment: Assignment) => {
+    if (assignment.dueStatus === "OVERDUE")
+      return <span className="px-2 py-1 rounded bg-red-100 text-red-600">
+        OVERDUE</span>;
 
-    if (diffDays < 0)
-      return <span className="px-2 py-1 rounded bg-red-100 text-red-600">Overdue</span>;
-
-    if (diffDays === 0)
-      return <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-600">Due Today</span>;
+    if (assignment.dueStatus === "DUE_TODAY")
+      return <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-600">
+        DUE TODAY</span>;
 
     return (
       <span className="px-2 py-1 rounded bg-green-100 text-green-600">
-        {diffDays} days left
+        {assignment.daysLeft} days left
       </span>
     );
   };
@@ -55,9 +62,9 @@ export default function AssignmentTable({
           {assignments.map((assignment) => (
             <tr key={assignment.id} className="border-b text-black">
               <td className="py-3">{assignment.title}</td>
-              <td>{assignment.course}</td>
-              <td>{assignment.dueDate}</td>
-              <td>{getStatusBadge(assignment.dueDate)}</td>
+              <td>{assignment.course?.name ?? "No Course"}</td>
+              <td>{new Date(assignment.dueDate).toLocaleDateString()}</td>
+              <td>{getStatusBadge(assignment)}</td>
               <td className="space-x-2">
                 <button
                   onClick={() => onEdit(assignment)}

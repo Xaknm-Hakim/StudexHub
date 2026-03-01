@@ -8,26 +8,26 @@ export default function AssignmentForm({
 }: {
   onAdd: (assignment: {
     title: string;
-    course: string;
+    courseId: string;
     dueDate: string;
   }) => void;
   editing: any;
 }) {
   const [title, setTitle] = useState("");
-  const [course, setCourse] = useState("");
+  const [courseId, setCourse] = useState("");
   const [dueDate, setDueDate] = useState("");
 
   useEffect(() => {
     if (editing) {
       setTitle(editing.title);
       setCourse(editing.course);
-      setDueDate(editing.dueDate);
+      setDueDate(editing.dueDate.split("T")[0]);
     }
   }, [editing]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd({ title, course, dueDate });
+    onAdd({ title, courseId, dueDate });
     setTitle("");
     setCourse("");
     setDueDate("");
@@ -52,7 +52,7 @@ export default function AssignmentForm({
 
       <input
         type="text"
-        value={course}
+        value={courseId}
         onChange={(e) => setCourse(e.target.value)}
         placeholder="Course"
         className="w-full border rounded p-2 text-black"
