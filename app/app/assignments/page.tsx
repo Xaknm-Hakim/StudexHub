@@ -27,10 +27,12 @@ export default function AssignmentsPage() {
   const [editing, setEditing] = useState<Assignment | null>(null);
 
   const fetchAssignments = async () => {
-  const res = await fetch("/api/assignments?sort=dueDate&order=asc");
+  const res = await fetch("/api/assignments?sort=dueDate&order=asc", {
+    credentials: "include"
+  });
 
   if (!res.ok) {
-    console.error("Failed to fetch assignments");
+    console.error("Failed to fetch assignments, res.status");
     return;
   }
 
@@ -42,37 +44,38 @@ useEffect(() => {
   fetchAssignments();
 }, []);
 
-const addOrUpdateAssignment = async (data: any) => {
-  if (editing) {
-    // UPDATE (PATCH)
-    await fetch(`/api/assignments/${editing.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...data,
-        dueData: new Date(data.dueData).toISOString(),
-      }),
+const addOrUpdateAssignment = async (payload: any) => {
+  console.log("PAYLOAD:", payload);
+
+  const method = editing ? "PATCH" : "POST";
+  const url = editing
+    ? `/api/assignments/${editing.id}`
+    : "/api/assignments";
+
+    const res = await fetch(url, {
+      method,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload)
     });
 
-    setEditing(null);
-  } else {
-    // CREATE (POST)
-    await fetch("/api/assignments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...data,
-        dueDate: new Date(data.dueDate).toISOString(),
-      }),
-    });
-  }
+console.log("STATUS:", res.status);
 
-  fetchAssignments();
+if (!res.ok) {
+  console.error ("Failed to save assignment");
+  return;
+}
+
+  await fetchAssignments();
+  setEditing(null);
 };
 
   const deleteAssignment = async (id: string) => {
     await fetch(`/api/assignments/${id}`, {
       method: "DELETE",
+      credentials: "include",
     });
 
     fetchAssignments();
