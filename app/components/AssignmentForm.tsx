@@ -8,29 +8,45 @@ export default function AssignmentForm({
 }: {
   onAdd: (assignment: {
     title: string;
-    courseId: string;
+    courseId: string | null;
     dueDate: string;
+    priority?: "LOW" | "MEDIUM" | "HIGH";
+    notes?: string | null;
+
   }) => void;
   editing: any;
 }) {
   const [title, setTitle] = useState("");
-  const [courseId, setCourse] = useState("");
+  const [courseId, setCourseId] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (editing) {
       setTitle(editing.title);
-      setCourse(editing.course);
+      setCourseId(editing.course?.id ?? "");
       setDueDate(editing.dueDate.split("T")[0]);
+      setPriority(editing.priority);
+      setNotes(editing.notes ?? "");
     }
   }, [editing]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd({ title, courseId, dueDate });
+    onAdd({ 
+      title, 
+      dueDate: new Date(dueDate).toISOString(), 
+      priority,
+      notes : notes || null,
+      courseId : courseId || null,
+    });
+
     setTitle("");
-    setCourse("");
+    setPriority("MEDIUM");
     setDueDate("");
+    setNotes("");
+
   };
 
   return (
@@ -53,7 +69,7 @@ export default function AssignmentForm({
       <input
         type="text"
         value={courseId}
-        onChange={(e) => setCourse(e.target.value)}
+        onChange={(e) => setCourseId(e.target.value)}
         placeholder="Course"
         className="w-full border rounded p-2 text-black"
       />
