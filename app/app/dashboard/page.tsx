@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
@@ -15,14 +13,21 @@ export default function DashboardPage() {
                 <p className="text-center text-grey-400"> how are you doing? </p>
 
                 
-                <div className="text-center"> {/* This div is to make the redirects/buttons */} 
-                <button
-                onClick={() => router.push("/assignments")} 
-                className="px-4 py-2 bg-white text-black rounded ">
-                    go to assignments
-                
-                </button>
-                </div>
+               <div className="w-full flex flex-col items-center gap-4">
+                    <button
+                        onClick={() => router.push("/assignments")}
+                        className="px-4 py-2 bg-white text-black rounded"
+                    >
+                        go to assignments
+                    </button>
+
+                    <button
+                        onClick={() => router.push("/about")}
+                        className="px-4 py-2 text-white font-medium hover:underline"
+                    >
+                        about us
+                    </button>
+                    </div>
             </div>
         </main>
     );
