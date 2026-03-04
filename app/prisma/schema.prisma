@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  semesters   Semester[]
+  assignments Assignment[]
+}
+
+model Semester {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  year      Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses Course[]
+
+  @@index([userId])
+}
+
+model Course {
+  id         String   @id @default(cuid())
+  semesterId String
+  code       String?
+  name       String
+  credit     Int
+
+  mark       Int?     // 0–100 (UTHM mark-based)
+  gradePoint Float?   // optional cache (computed from mark)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  assignments Assignment[]
+
+  @@index([semesterId])
+}
+
+enum AssignmentStatus {
+  PENDING
+  DONE
+}
+
+enum AssignmentPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Assignment {
+  id          String             @id @default(cuid())
+  userId      String
+  courseId    String? // optional for MVP, but recommended
+  title       String
+  dueDate     DateTime
+  status      AssignmentStatus   @default(PENDING)
+  priority    AssignmentPriority @default(MEDIUM)
+  notes       String?
+  completedAt DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@index([userId, dueDate])
+  @@index([userId, status])
+  @@index([courseId])
+}
+
+model InviteCode {
+  id String @id @default(cuid())
+
+  codeId   String @unique // public identifier like A7KQ2F
+  codeHash String // sha256(OTP + pepper) (or just sha256(OTP) for MVP)
+
+  attemptCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime
+  usedAt       DateTime?
+  lockedAt     DateTime?
+
+  @@index([expiresAt])
+}
