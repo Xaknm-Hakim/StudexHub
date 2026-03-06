@@ -5,48 +5,52 @@ import { useEffect, useState } from "react";
 export default function AssignmentForm({
   onAdd,
   editing,
+  onCancel,
 }: {
   onAdd: (assignment: {
     title: string;
-    courseId: string | null;
     dueDate: string;
     priority?: "LOW" | "MEDIUM" | "HIGH";
     notes?: string | null;
-
   }) => void;
   editing: any;
+  onCancel: () => void;
 }) {
   const [title, setTitle] = useState("");
-  const [courseId, setCourseId] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
+  const [priority, setPriority] =
+    useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (editing) {
-      setTitle(editing.title);
-      setCourseId(editing.course?.id ?? "");
-      setDueDate(editing.dueDate.split("T")[0]);
-      setPriority(editing.priority);
+      setTitle(editing.title ?? "");
+      setDueDate((editing.dueDate ?? "").split("T")[0]);
+      setPriority(editing.priority ?? "MEDIUM");
       setNotes(editing.notes ?? "");
+    } else {
+      // Reset form when leaving edit mode
+      setTitle("");
+      setDueDate("");
+      setPriority("MEDIUM");
+      setNotes("");
     }
   }, [editing]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd({ 
-      title, 
-      dueDate: new Date(dueDate).toISOString(), 
+
+    if (!title || !dueDate) {
+      console.error("Title and Due Date are required");
+      return;
+    }
+
+    onAdd({
+      title,
+      dueDate: new Date(dueDate).toISOString(),
       priority,
-      notes : notes || null,
-      courseId : courseId || null,
+      notes,
     });
-
-    setTitle("");
-    setPriority("MEDIUM");
-    setDueDate("");
-    setNotes("");
-
   };
 
   return (
@@ -63,30 +67,41 @@ export default function AssignmentForm({
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Assignment Title"
-        className="w-full border rounded p-2 text-black"
-      />
-
-      <input
-        type="text"
-        value={courseId}
-        onChange={(e) => setCourseId(e.target.value)}
-        placeholder="Course"
-        className="w-full border rounded p-2 text-black"
+        className="w-full border rounded p-2"
       />
 
       <input
         type="date"
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
-        className="w-full border rounded p-2 text-black"
+        className="w-full border rounded p-2"
       />
 
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        {editing ? "Update" : "Add"}
-      </button>
+      <textarea
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="Notes (optional)"
+        className="w-full border rounded p-2"
+      />
+
+      <div className="space-x-2">
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          {editing ? "Update" : "Add"}
+        </button>
+
+        {editing && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-400 text-white px-4 py-2 rounded"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }
