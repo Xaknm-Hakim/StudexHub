@@ -26,6 +26,7 @@ model User {
 model Semester {
   id        String   @id @default(cuid())
   userId    String
+  slot      Int
   name      String
   year      Int?
   createdAt DateTime @default(now())
@@ -34,6 +35,7 @@ model Semester {
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   courses Course[]
 
+  @@unique([userId, slot])
   @@index([userId])
 }
 
