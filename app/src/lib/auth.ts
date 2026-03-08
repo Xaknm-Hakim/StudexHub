@@ -1,13 +1,23 @@
-import "dotenv/config";
 import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { SESSION_COOKIE } from "@/src/lib/cookies";
 
-const SECRET = process.env.AUTH_SECRET;
-if (!SECRET) throw new Error("AUTH_SECRET is missing in .env");
+function getSecret(): string {
+  const secret = process.env.AUTH_SECRET;
 
-const key = new TextEncoder().encode(SECRET);
+  if (!secret) {
+    throw new Error("AUTH_SECRET is missing");
+  }
+
+  return secret;
+}
+
+function getKey(): Uint8Array {
+  return new TextEncoder().encode(getSecret());
+}
 
 export type SessionPayload = {
-  sub: string; // userId
+  sub: string;
   email: string;
   name: string | null;
 };
@@ -16,18 +26,18 @@ export async function signSession(payload: SessionPayload, expiresInDays = 7) {
   const now = Math.floor(Date.now() / 1000);
   const exp = now + expiresInDays * 24 * 60 * 60;
 
-  const jwt = await new SignJWT({ email: payload.email, name: payload.name })
+  return await new SignJWT({ email: payload.email, name: payload.name })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(payload.sub)
     .setIssuedAt(now)
     .setExpirationTime(exp)
-    .sign(key);
-
-  return jwt;
+    .sign(getKey());
 }
 
 export async function verifySession(token: string) {
-  const { payload } = await jwtVerify(token, key, { algorithms: ["HS256"] });
+  const { payload } = await jwtVerify(token, getKey(), {
+    algorithms: ["HS256"],
+  });
 
   const sub = payload.sub;
   const email = payload.email;
@@ -39,9 +49,6 @@ export async function verifySession(token: string) {
 
   return { sub, email, name: typeof name === "string" ? name : null };
 }
-
-import { cookies } from "next/headers";
-import { SESSION_COOKIE } from "@/src/lib/cookies";
 
 export async function getSession() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;

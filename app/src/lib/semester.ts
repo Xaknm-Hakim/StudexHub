@@ -8,7 +8,7 @@ export const SEMESTER_LABELS: Record<number, string> = {
 };
 
 export function isValidSemesterSlot(value: unknown): value is number {
-  return Number.isInteger(value) && value >= 0 && value <= 5;
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 5;
 }
 
 export function getSemesterName(slot: number): string {
