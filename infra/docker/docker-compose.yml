@@ -1,0 +1,29 @@
+services:
+  web:
+    build:
+      context: ../../app
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+      dockerfile: Dockerfile
+    container_name: baruashub-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.docker
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    container_name: baruashub-db
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - baruashub_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  baruashub_postgres_data:
