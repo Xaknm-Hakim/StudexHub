@@ -1,705 +1,754 @@
-# StudexCenter API Documentation
+# BaruasHub API Reference
 
-This document explains the backend API used in StudexCenter so frontend development can be implemented easily.
+This document maps the currently shared API endpoints in `app/api` and explains what each endpoint is for.
 
-All APIs are intended for internal usage between the frontend and backend of the project.
-
----
-
-# Base URL
-
-Local development:
-
-http://localhost:3000/api
-
-Most frontend calls can simply use:
-
-fetch("/api/semesters")
+> Note: This reference is based only on the endpoint files provided in chat.  
+> Some folders were listed but not fully shown, so those are not documented yet.
 
 ---
 
-# Authentication
+## Overview
 
-StudexCenter uses a **custom cookie-based session system**.
+Current API groups covered in this document:
 
-When a user logs in:
-- the server sets a session cookie
-- protected API routes check the session
-
-Most protected routes call:
-
-requireUserId()
-
-If the user is not authenticated, the API returns:
-
-401 Unauthorized
-
-Frontend implication:
-
-- protected pages should assume the user must already be logged in
-- if a request returns `401`, redirect the user to login
-
-Example fetch:
-
-fetch("/api/assignments", {
-  credentials: "include"
-})
+- `academics`
+- `assignments`
+- `auth`
+- `class-schedules`
+- `courses`
+- `internal/notifications`
+- `notifications`
+- `semesters`
 
 ---
 
-# Common Response Pattern
+# 1. Academics
 
-Most endpoints return JSON.
-
-## Success
-
-Example:
-
-{
-  "id": "abc123",
-  "name": "Year 1 Semester 1"
-}
-
-## Client Error
-
-Example:
-
-{
-  "error": "Semester name is required"
-}
-
-Usually paired with:
-
-400 Bad Request  
-401 Unauthorized  
-404 Not Found  
-
-## Server Error
-
-Example:
-
-{
-  "error": "Internal server error"
-}
-
-Usually paired with:
-
-500 Internal Server Error
-
----
-
-# API Overview
-
-Current API groups:
-
-1. Semesters
-2. Semester GPA
-3. CGPA
-4. Assignments
-5. Class Schedules
-
----
-
-# Semesters API
-
-The semesters API manages academic semester records.
-
-Each semester acts as a container for courses, grades, and GPA.
-
----
-
-## GET /api/semesters
+## GET `/api/academics/summary`
 
 ### Purpose
+Returns the user's academic overview, including:
 
-Fetch all semesters belonging to the logged-in user.
+- overall CGPA
+- total counted credits
+- GPA summary for each semester
 
-### When frontend should call it
+### Auth
+Requires logged-in user.
 
-- when the academic page loads
-- when showing semester dropdown
-- after creating a new semester
-
-### Example request
-
-GET /api/semesters
-
-### Example response
-
-[
-  {
-    "id": "sem_001",
-    "name": "Year 1 Semester 1",
-    "createdAt": "2026-02-20T10:00:00Z"
-  },
-  {
-    "id": "sem_002",
-    "name": "Year 1 Semester 2",
-    "createdAt": "2026-02-25T10:00:00Z"
-  }
-]
-
-### Frontend usage
-
-Din can use this to:
-
-- build semester list
-- populate dropdown selector
-- display academic overview
-
-### Possible errors
-
-401 Unauthorized  
-User is not logged in.
-
-500 Internal Server Error  
-Database failure.
-
----
-
-## POST /api/semesters
-
-### Purpose
-
-Create a new semester.
-
-### When frontend should call it
-
-After the user submits a create semester form.
-
-### Request body
-
-{
-  "name": "Year 1 Semester 1"
-}
-
-### Example request
-
-POST /api/semesters
-
-{
-  "name": "Year 1 Semester 1"
-}
-
-### Example response
-
-{
-  "id": "sem_001",
-  "name": "Year 1 Semester 1",
-  "createdAt": "2026-03-01T12:00:00Z"
-}
-
-### Frontend usage
-
-After success:
-
-- close modal/form
-- refresh semester list
-- optionally auto-select new semester
-
-### Possible errors
-
-400 Bad Request  
-Missing semester name.
-
-401 Unauthorized  
-User not logged in.
-
-500 Internal Server Error
-
----
-
-# Semester GPA API
-
-This API calculates GPA for one specific semester.
-
-Important distinction:
-
-GPA = result for one semester  
-CGPA = cumulative result across all semesters
-
----
-
-## GET /api/semesters/:semesterId/gpa
-
-### Purpose
-
-Calculate GPA for a single semester.
-
-### When frontend should call it
-
-- when a semester detail page loads
-- when a semester is selected
-- after updating grades
-
-### Example request
-
-GET /api/semesters/sem_001/gpa
-
-### Example response
-
-{
-  "semesterId": "sem_001",
-  "gpa": 3.67,
-  "totalCredits": 18
-}
-
-### Field explanation
-
-semesterId → the semester being calculated  
-gpa → GPA for that semester  
-totalCredits → total credits counted
-
-### Frontend usage
-
-Din can use this to:
-
-- display semester GPA
-- show academic summary
-- update semester cards
-
-### Possible errors
-
-400 Bad Request
-
-401 Unauthorized
-
-404 Not Found  
-Semester does not exist.
-
-500 Internal Server Error
-
----
-
-# CGPA API
-
-This API calculates the overall CGPA across all semesters.
-
-Unlike semester GPA, CGPA is a global academic summary.
-
----
-
-## GET /api/cgpa
-
-### Purpose
-
-Calculate cumulative GPA across all semesters.
-
-### When frontend should call it
-
-- when the academic dashboard loads
-- when showing overall CGPA
-- after grades are updated
-
-### Example request
-
-GET /api/cgpa
-
-### Example response
-
+### Response
+```json
 {
   "cgpa": 3.52,
-  "totalCredits": 54,
-  "totalPoints": 190.08
+  "totalCredits": 42,
+  "semesterStats": [
+    {
+      "semesterId": "abc123",
+      "name": "Year 1 Semester 1",
+      "year": 1,
+      "gpa": 3.41,
+      "credits": 20
+    }
+  ]
 }
+```
 
-### Field explanation
+### Notes
+Use this endpoint for:
 
-cgpa → cumulative GPA  
-totalCredits → credits across all semesters  
-totalPoints → total grade points
+- dashboard CGPA card
+- academic summary page
+- semester GPA overview list
 
-### Frontend usage
-
-Din can use this to:
-
-- show CGPA card on dashboard
-- display academic summary
-- compare semester GPA vs CGPA
-
-### Possible errors
-
-401 Unauthorized
-
-500 Internal Server Error
+This is the main **CGPA endpoint** in the current system.
 
 ---
 
-# Assignments API
+# 2. Assignments
 
-The assignments API manages academic task tracking.
-
-It powers:
-
-- assignment list
-- due tracking
-- overdue detection
-- completion status
-
-The backend returns computed fields such as:
-
-daysLeft  
-dueStatus
-
-This reduces frontend calculation.
-
----
-
-# Assignment Object
-
-Example assignment object:
-
-{
-  "id": "asg_001",
-  "title": "Operating Systems Report",
-  "dueDate": "2026-03-10",
-  "status": "PENDING",
-  "priority": "HIGH",
-  "notes": "Prepare slides",
-  "daysLeft": 3,
-  "dueStatus": "DUE_IN_X_DAYS",
-  "course": {
-    "id": "course_001",
-    "name": "Operating Systems",
-    "code": "DAT10903",
-    "credit": 3
-  }
-}
-
-### Status values
-
-PENDING  
-DONE
-
-### Priority values
-
-LOW  
-MEDIUM  
-HIGH
-
-### Due status values
-
-OVERDUE  
-DUE_TODAY  
-DUE_IN_X_DAYS
-
----
-
-## GET /api/assignments
+## GET `/api/assignments`
 
 ### Purpose
+Fetch assignments belonging to the current user.
 
-Fetch all assignments.
+### Auth
+Requires logged-in user.
 
-### When frontend should call it
+### Supported query params
 
-- when assignments page loads
-- after create/update/delete
-- when refreshing assignments
+- `status=PENDING|DONE`
+- `courseId=<courseId>`
+- `q=<search text>`
+- `sort=<field>` default: `dueDate`
+- `order=asc|desc` default: `asc`
 
-### Example request
+### Example
+```http
+GET /api/assignments?status=PENDING&sort=dueDate&order=asc
+```
 
-GET /api/assignments
+### Response
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "asg1",
+      "title": "Database Report",
+      "dueDate": "2026-03-12T00:00:00.000Z",
+      "status": "PENDING",
+      "priority": "HIGH",
+      "notes": null,
+      "completedAt": null,
+      "createdAt": "2026-03-09T02:00:00.000Z",
+      "updatedAt": "2026-03-09T02:00:00.000Z",
+      "courseId": "course1",
+      "course": {
+        "id": "course1",
+        "name": "Database",
+        "code": "DAT20103",
+        "credit": 3
+      },
+      "daysLeft": 3,
+      "dueStatus": "DUE_IN_X_DAYS"
+    }
+  ]
+}
+```
 
-### Example response
+### Notes
+The backend automatically adds:
 
-[
-  {
-    "id": "asg_001",
-    "title": "Operating Systems Report",
-    "dueDate": "2026-03-10",
+- `daysLeft`
+- `dueStatus`
+
+Possible `dueStatus` values:
+
+- `OVERDUE`
+- `DUE_TODAY`
+- `DUE_IN_X_DAYS`
+
+---
+
+## POST `/api/assignments`
+
+### Purpose
+Create a new assignment for the current user.
+
+### Auth
+Requires logged-in user.
+
+### Request body
+```json
+{
+  "title": "Database Report",
+  "dueDate": "2026-03-12",
+  "notes": "Finish ERD section",
+  "priority": "HIGH",
+  "courseId": "course1"
+}
+```
+
+### Rules
+- `title` is required
+- `dueDate` is required
+- `priority` defaults to `MEDIUM` if missing or invalid
+- `courseId`, if provided, must belong to the current user
+
+### Success response
+```json
+{
+  "ok": true,
+  "data": {
+    "id": "asg1",
+    "title": "Database Report",
+    "dueDate": "2026-03-12T00:00:00.000Z",
     "status": "PENDING",
     "priority": "HIGH",
-    "notes": "Prepare slides",
+    "notes": "Finish ERD section",
+    "courseId": "course1",
     "daysLeft": 3,
     "dueStatus": "DUE_IN_X_DAYS"
   }
-]
-
-### Frontend usage
-
-Din can use this to:
-
-- render assignment table
-- highlight overdue tasks
-- sort by due date
-- filter pending vs completed
-
-### Possible errors
-
-401 Unauthorized
-
-500 Internal Server Error
+}
+```
 
 ---
 
-## POST /api/assignments
+## PATCH `/api/assignments/:id`
 
 ### Purpose
+Update an assignment owned by the current user.
 
-Create a new assignment.
+### Auth
+Requires logged-in user.
 
-### When frontend should call it
+### Updatable fields
+- `title`
+- `notes`
+- `priority`
+- `dueDate`
+- `status`
+- `courseId`
 
-After submitting the add assignment form.
+### Example request
+```json
+{
+  "status": "DONE",
+  "notes": "Submitted on time"
+}
+```
+
+### Special behavior
+If `status` becomes `"DONE"`, backend sets `completedAt = new Date()`.
+
+If `status` becomes `"PENDING"`, backend sets `completedAt = null`.
+
+### Success response
+Returns the updated assignment with computed `daysLeft` and `dueStatus`.
+
+---
+
+## DELETE `/api/assignments/:id`
+
+### Purpose
+Delete an assignment owned by the current user.
+
+### Auth
+Requires logged-in user.
+
+### Success response
+```json
+{
+  "ok": true
+}
+```
+
+---
+
+# 3. Auth
+
+## POST `/api/auth/login`
+
+### Purpose
+Log in using email and password, then create session cookie.
 
 ### Request body
-
+```json
 {
-  "title": "Operating Systems Report",
-  "dueDate": "2026-03-15",
-  "priority": "HIGH",
-  "courseId": "course_001",
-  "notes": "Prepare slides"
+  "email": "user@example.com",
+  "password": "your-password"
 }
+```
 
-### Example response
-
+### Success response
+```json
 {
-  "id": "asg_002",
-  "title": "Operating Systems Report",
-  "status": "PENDING"
+  "ok": true
 }
+```
 
-### Possible errors
-
-400 Bad Request  
-Missing title or invalid due date.
-
-401 Unauthorized
-
-404 Not Found  
-Course does not exist.
-
-500 Internal Server Error
+### Notes
+- sets the session cookie
+- returns `401` for invalid credentials
 
 ---
 
-## PATCH /api/assignments/:assignmentId
+## POST `/api/auth/logout`
 
 ### Purpose
+Log out the current user by clearing session cookie.
 
-Update an assignment.
-
-Useful for:
-
-- mark as done
-- edit title
-- edit due date
-- change priority
-- edit notes
-
-### Example request
-
-PATCH /api/assignments/asg_001
-
+### Success response
+```json
 {
-  "status": "DONE"
+  "ok": true
 }
-
-### Example response
-
-{
-  "id": "asg_001",
-  "status": "DONE"
-}
-
-### Possible errors
-
-400 Bad Request
-
-401 Unauthorized
-
-404 Not Found
-
-500 Internal Server Error
+```
 
 ---
 
-## DELETE /api/assignments/:assignmentId
+## GET `/api/auth/me`
 
 ### Purpose
+Return the currently authenticated user's basic info.
 
-Delete an assignment.
-
-### Example request
-
-DELETE /api/assignments/asg_001
-
-### Example response
-
+### Response
+```json
 {
-  "message": "Assignment deleted successfully"
-}
-
-### Possible errors
-
-401 Unauthorized
-
-404 Not Found
-
-500 Internal Server Error
-
----
-
-# Class Schedules API
-
-The class schedules API manages student timetable data.
-
-It allows storing weekly class schedules.
-
----
-
-# Class Schedule Object
-
-Example:
-
-{
-  "id": "sched_001",
-  "day": "MONDAY",
-  "startTime": "08:00",
-  "endTime": "10:00",
-  "location": "Makmal 3",
-  "course": {
-    "id": "course_001",
-    "name": "Operating Systems",
-    "code": "DAT10903"
+  "user": {
+    "id": "user1",
+    "email": "user@example.com",
+    "name": "Hakim",
+    "createdAt": "2026-03-01T00:00:00.000Z"
   }
 }
+```
+
+### Notes
+Returns `401` if not authenticated.
 
 ---
 
-## GET /api/class-schedules
+## POST `/api/auth/signup`
 
 ### Purpose
+Create a new account using:
 
-Fetch all schedules.
+- email
+- password
+- invite code
 
-### When frontend should call it
+### Request body
+```json
+{
+  "name": "Hakim",
+  "email": "user@example.com",
+  "password": "your-password",
+  "inviteCode": "CODEID-OTP"
+}
+```
 
-- when timetable page loads
-- when dashboard needs schedule data
+### Rules
+- `email`, `password`, and `inviteCode` are required
+- invite code format must be `CODEID-OTP`
+- invite code can expire
+- invite code can be locked after too many wrong attempts
+- invite code can only be used once
+- email must be unique
 
-### Example request
+### Success response
+```json
+{
+  "ok": true
+}
+```
 
-GET /api/class-schedules
+---
 
-### Example response
+# 4. Class Schedules
 
+## GET `/api/class-schedules`
+
+### Purpose
+Fetch all weekly class schedules for the current user.
+
+### Auth
+Requires logged-in user.
+
+### Response
+```json
 [
   {
-    "id": "sched_001",
-    "day": "MONDAY",
+    "id": "cls1",
+    "title": "Database",
+    "dayOfWeek": 1,
+    "day": "Monday",
     "startTime": "08:00",
     "endTime": "10:00",
-    "location": "Makmal 3"
+    "location": "Bilik A2",
+    "isActive": true,
+    "createdAt": "2026-03-09T04:00:00.000Z",
+    "updatedAt": "2026-03-09T04:00:00.000Z"
   }
 ]
+```
 
-### Possible errors
-
-401 Unauthorized
-
-500 Internal Server Error
+### Notes
+This returns the weekly template, not generated real dates.
 
 ---
 
-## POST /api/class-schedules
+## POST `/api/class-schedules`
 
 ### Purpose
+Create a weekly class schedule for the current user.
 
-Create a class schedule.
+### Auth
+Requires logged-in user.
 
 ### Request body
-
+```json
 {
-  "courseId": "course_001",
-  "day": "MONDAY",
+  "title": "Database",
+  "dayOfWeek": 1,
   "startTime": "08:00",
   "endTime": "10:00",
-  "location": "Makmal 3"
+  "location": "Bilik A2"
 }
+```
 
-### Validation rules
+### Validation
+- `title` is required
+- `dayOfWeek` must be `1` to `5`
+- `startTime` and `endTime` must be in `HH:MM`
+- `endTime` must be later than `startTime`
+- overlapping active classes on the same day are rejected
 
-startTime must be earlier than endTime  
-time format must be valid
+### Success response
+Returns the created class schedule.
 
-Validation handled in:
+---
 
-src/lib/class-schedule.ts
+## PATCH `/api/class-schedules/:id`
 
-### Example response
+### Purpose
+Update a class schedule owned by the current user.
 
+### Auth
+Requires logged-in user.
+
+### Updatable fields
+- `title`
+- `location`
+- `dayOfWeek`
+- `startTime`
+- `endTime`
+- `isActive`
+
+### Notes
+Uses the same validation and overlap rules as create.
+
+---
+
+## DELETE `/api/class-schedules/:id`
+
+### Purpose
+Delete a class schedule owned by the current user.
+
+### Success response
+```json
 {
-  "id": "sched_002",
-  "day": "MONDAY",
-  "startTime": "08:00",
-  "endTime": "10:00",
-  "location": "Makmal 3"
+  "success": true
 }
-
-### Possible errors
-
-400 Bad Request  
-Invalid time range.
-
-401 Unauthorized
-
-404 Not Found  
-Course does not exist.
-
-500 Internal Server Error
+```
 
 ---
 
-# Backend Helper Files
+# 5. Courses
 
-Important backend modules:
+## POST `/api/courses`
 
-src/lib/prisma.ts  
-Database connection.
+### Purpose
+Create a new course for the current user.
 
-src/lib/auth.ts  
-Authentication helpers.
+### Auth
+Requires logged-in user.
 
-src/lib/cookies.ts  
-Session cookie management.
+### Request body
+```json
+{
+  "name": "Database",
+  "code": "DAT20103",
+  "credit": 3,
+  "mark": 85,
+  "semesterSlot": 2
+}
+```
 
-src/lib/class-schedule.ts  
-Schedule validation and formatting.
+### Behavior
+- validates course name
+- validates `credit` as positive integer
+- validates `semesterSlot`
+- converts `mark` into `gradePoint`
+- auto-creates the semester if it does not already exist for that user and slot
 
-src/lib/grading/  
-GPA and CGPA calculation logic.
+### Success response
+```json
+{
+  "course": {
+    "id": "course1",
+    "name": "Database",
+    "code": "DAT20103",
+    "credit": 3,
+    "mark": 85,
+    "gradePoint": 4,
+    "semester": {
+      "id": "sem1",
+      "slot": 2,
+      "name": "Year 1 Semester 2"
+    }
+  }
+}
+```
+
+### Important note
+Currently, this route only has `POST` in the shared file.  
+Even if there was discussion about a future `GET /api/courses`, that was not shown in the pasted code here.
 
 ---
 
-# Suggested Future APIs
+## PATCH `/api/courses/:courseId`
 
-Possible future additions:
+### Purpose
+Update a course owned by the current user.
 
-GET /api/dashboard/summary  
-Return dashboard statistics.
+### Auth
+Requires logged-in user.
 
-PATCH /api/class-schedules/:scheduleId  
-Edit timetable entry.
+### Updatable fields
+- `name`
+- `code`
+- `credit`
+- `mark`
+- `semesterSlot`
 
-DELETE /api/class-schedules/:scheduleId  
-Remove schedule.
+### Behavior
+- changing `mark` recalculates `gradePoint`
+- setting `mark` to `null` or `""` clears both `mark` and `gradePoint`
+- changing `semesterSlot` can auto-create target semester if missing
 
-Course API  
-Create and manage courses.
+### Success response
+Returns the updated course object with semester info.
 
 ---
 
-# Final Notes
+## DELETE `/api/courses/:courseId`
 
-This API structure supports:
+### Purpose
+Delete a course owned by the current user.
 
-- academic semester management
-- GPA calculation
-- CGPA summary
-- assignment tracking
-- class timetable management
+### Success response
+```json
+{
+  "success": true
+}
+```
 
-The backend also provides computed fields such as `daysLeft` and `dueStatus`, which simplifies frontend implementation.
+---
+
+# 6. Internal Notifications
+
+## POST `/api/internal/notifications/run`
+
+### Purpose
+Internal cron endpoint to run notification jobs.
+
+### Auth
+Protected by request header:
+- `x-internal-cron-secret`
+
+### Runs
+- assignment reminders
+- class reminders
+- old delivery log cleanup
+
+### Success response
+```json
+{
+  "ok": true,
+  "assignmentInAppCreated": 4,
+  "assignmentEmailsSent": 4,
+  "assignmentEmailFailures": 0,
+  "classSummariesCreated": 2,
+  "deliveryLogsDeleted": 15
+}
+```
+
+### Notes
+This endpoint is for internal server/cron usage only, not frontend.
+
+---
+
+# 7. Notifications
+
+## PATCH `/api/notifications/:id/read`
+
+### Purpose
+Mark one notification as read.
+
+### Auth
+Requires logged-in user.
+
+### Success response
+Returns the updated notification object.
+
+### Errors
+- `404` if notification is not found or does not belong to the user
+
+---
+
+## PATCH `/api/notifications/read-all`
+
+### Purpose
+Mark all unread notifications as read for the current user.
+
+### Auth
+Requires logged-in user.
+
+### Success response
+```json
+{
+  "updatedCount": 5
+}
+```
+
+### Note
+Only the mark-as-read routes were provided in chat.  
+A general `GET /api/notifications` list endpoint was not shown here.
+
+---
+
+# 8. Semesters
+
+## GET `/api/semesters`
+
+### Purpose
+Return the available semester options.
+
+### Auth
+Requires logged-in user.
+
+### Response
+```json
+{
+  "semesters": [
+    {
+      "slot": 0,
+      "label": "Special Semester"
+    }
+  ]
+}
+```
+
+### Notes
+This is not the user's created semesters list from DB.  
+It returns predefined semester options from `SEMESTER_OPTIONS`.
+
+---
+
+## GET `/api/semesters/:semesterId/gpa`
+
+### Purpose
+Calculate GPA for one semester.
+
+### Auth
+Requires logged-in user.
+
+### Response
+```json
+{
+  "semesterId": "sem1",
+  "semesterName": "Year 1 Semester 2",
+  "gpa": 3.67,
+  "totalCredits": 18,
+  "countedCourses": 6,
+  "totalCourses": 7
+}
+```
+
+### Notes
+This is a **single-semester GPA endpoint**, not the cumulative CGPA endpoint.
+
+---
+
+## POST `/api/semesters/:semesterId/courses`
+
+### Purpose
+Create a new course directly under a specific semester.
+
+### Auth
+Requires logged-in user.
+
+### Request body
+```json
+{
+  "name": "Database",
+  "code": "DAT20103",
+  "credit": 3,
+  "mark": 85
+}
+```
+
+### Behavior
+- checks that the semester belongs to the current user
+- validates `name`
+- validates `credit`
+- if `mark` exists, converts it to `gradePoint`
+
+### Success response
+```json
+{
+  "course": {
+    "id": "course1",
+    "semesterId": "sem1",
+    "name": "Database",
+    "code": "DAT20103",
+    "credit": 3,
+    "mark": 85,
+    "gradePoint": 4
+  }
+}
+```
+
+---
+
+# Suggested Mental Model for Din
+
+## Academic summary
+- `GET /api/academics/summary`
+  - dashboard academic overview
+  - CGPA
+  - semester GPA list
+
+## Semesters
+- `GET /api/semesters`
+  - get semester options list
+- `GET /api/semesters/:semesterId/gpa`
+  - get one semester GPA
+
+## Courses
+- `POST /api/courses`
+  - create course by semester slot
+- `PATCH /api/courses/:courseId`
+  - update course
+- `DELETE /api/courses/:courseId`
+  - delete course
+- `POST /api/semesters/:semesterId/courses`
+  - create course directly inside chosen semester
+
+## Assignments
+- `GET /api/assignments`
+  - list assignments
+- `POST /api/assignments`
+  - create assignment
+- `PATCH /api/assignments/:id`
+  - update assignment
+- `DELETE /api/assignments/:id`
+  - delete assignment
+
+## Class schedules
+- `GET /api/class-schedules`
+  - list classes
+- `POST /api/class-schedules`
+  - create class
+- `PATCH /api/class-schedules/:id`
+  - update class
+- `DELETE /api/class-schedules/:id`
+  - delete class
+
+## Auth
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `POST /api/auth/signup`
+
+## Notifications
+- `PATCH /api/notifications/:id/read`
+- `PATCH /api/notifications/read-all`
+
+## Internal
+- `POST /api/internal/notifications/run`
+  - cron only
+
+---
+
+# Missing or Not Yet Documented
+
+The following were mentioned by folder listing but not fully documented from pasted files:
+
+- other possible routes inside `notifications/route.ts`
+- anything else inside `academics` besides `summary`
+- anything else inside `internal` besides notifications run
+
+If more route files are pasted later, this document should be updated.
