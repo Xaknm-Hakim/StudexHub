@@ -3,8 +3,8 @@ services:
     image: postgres:16
     container_name: baruashub_db
     environment:
-      POSTGRES_USER: baruashub
-      POSTGRES_PASSWORD: baruashub_dev_pw
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: baruashub
     ports:
       - "5432:5432"
