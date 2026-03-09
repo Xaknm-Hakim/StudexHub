@@ -1,52 +1,66 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { Summary, SemesterStat } from "@/src/lib/types/summary";
 import { useRouter } from "next/navigation";
 
-type SemesterStat = {
-  semesterId: string;
-  name: string;
-  year: number | null;
-  gpa: number | null;
-  credits: number;
-};
-
-type Summary = {
-  cgpa: number | null;
-  totalCredits: number;
-  semesterStats: SemesterStat[];
-};
-
-export default async function DashboardPage() {
+export default function DashboardPage() {
   const router = useRouter();
-  const res = await fetch("/api/academics/summary", { cache: "no-store"});
-  const summary = await res.json();
+  const [summary, setSummary] = useState<Summary | null>(null);
 
+  useEffect(() => {
+    async function fetchSummary() {
+      try {
+        const res = await fetch("/api/academics/summary", { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to fetch summary");
+
+        const data: Summary = await res.json();
+        setSummary(data);
+      } catch (err) {
+        console.error(err);
+        setSummary(null);
+      }
+    }
+
+    fetchSummary();
+  }, []);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-black text-white">
       <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl space-y-4">
-        <h1 className="text-2xl text-center font-bold">Dashboard and Home!</h1>
-        <p className="text-center text-gray-400">how are you doing?</p>
+        <h1 className="text-3xl text-center font-bold tracking-tight">Welcome Home Motherfucker</h1>
+        <p className="text-center text-zinc-400 text-sm">suck my ballsss?</p>
 
-        {/* CGPA Summary */}
-        <div className="bg-zinc-800 p-4 rounded-xl text-center space-y-2">
-          <p className="text-sm text-zinc-400">Overall CGPA</p>
-          <p className="text-3xl font-bold">{summary?.cgpa?.toFixed(2) ?? "N/A"}</p>
-          <p className="text-sm text-zinc-400">
-            Total Credits: {summary?.totalCredits ?? 0}
-          </p>
+      {/* this is the summary cards*/}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-zinc-800 p-4 rounded-xl text-center">
+            <p className="text-sm text-zinc-400">CGPA</p>
+            <p className="text-3xl font-bold">{summary?.cgpa?.toFixed(2) ?? "N/A"}</p>
+          </div>
+
+          <div className="bg-zinc-800 p-4 rounded-xl text-center">
+            <p className="text-sm text-zinc-400">Total Credits</p>
+            <p className="text-3xl font-bold">{summary?.totalCredits ?? 0}</p>
+          </div>
         </div>
+      {/*up until here*/}
+      {/*below is the semester GPA */}
+        <div className="bg-zinc-800 p-4 rounded-xl space-y-2">
+          <p className="font-semibold text-center mb-2 text-lg">Semester GPA</p>
 
-        {/* Semester GPA list */}
-        <div className="bg-zinc-800 p-4 rounded-xl space-y-1">
-          <p className="font-semibold text-center mb-2">Semester GPA</p>
-          {summary?.semesterStats.length ? (
-            summary.semesterStats.map((s: SemesterStat) => (
-              <div key={s.semesterId} className="flex justify-between text-sm">
+          {summary?.semesterStats?.length ? (
+            summary.semesterStats.map((s) => (
+              <div
+                key={s.semesterId}
+                className="flex justify-between bg-zinc-900 px-3 py-2 rounded-lg"
+              >
                 <span>
                   {s.name} {s.year ? `(${s.year})` : ""}
                 </span>
-                <span>{s.gpa !== null ? s.gpa.toFixed(2) : "N/A"}</span>
+
+                <span className="font-semibold text-green-400">
+                  {s.gpa !== null ? s.gpa.toFixed(2) : "N/A"}
+                </span>
               </div>
             ))
           ) : (
@@ -54,34 +68,24 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Navigation buttons */}
-        <div className="w-full flex flex-col items-center gap-4 mt-4">
-          <button
-            onClick={() => router.push("/assignments")}
-            className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full cursor-pointer hover:bg-white hover:text-black transition duration-300 ease-in-out"
-          >
-            go to assignments
+      {/*up until here for semester GPA */}
+
+      {/*below are navigation buttons */}
+        <div className=" grid grid-cols-2 gap-3 mt-4">
+          <button onClick={() => router.push("/assignments")} className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full hover:bg-white hover:text-black">
+          Assignments
           </button>
 
-          <button
-            onClick={() => router.push("/cgpa")}
-            className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full cursor-pointer hover:bg-white hover:text-black transition duration-300 ease-in-out"
-          >
-            go to CGPA
+          <button onClick={() => router.push("/cgpa")} className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full hover:bg-white hover:text-black">
+          CGPA
           </button>
 
-          <button
-            onClick={() => router.push("/schedules")}
-            className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full cursor-pointer hover:bg-white hover:text-black transition duration-300 ease-in-out"
-          >
-            go to schedule
+          <button onClick={() => router.push("/schedules")} className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full hover:bg-white hover:text-black">
+          Schedule
           </button>
 
-          <button
-            onClick={() => router.push("/about")}
-            className="px-4 py-2 text-white font-medium hover:underline"
-          >
-            about us
+          <button onClick={() => router.push("/about")} className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full hover:bg-white hover:text-black">
+          About Us
           </button>
         </div>
       </div>
