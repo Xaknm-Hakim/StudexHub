@@ -136,54 +136,82 @@ async function fetchCourses() {
     setEditingCourseId(course.id);
   }
 
+{/*below this are the visible buttons on the page (mostly for styling) */}
+
   return (
-    <main className="min-h-screen p-8 bg-zinc-900 text-white">
+    <main className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white flex justify-center p-8">
+      <div className="w-full max-w-4xl space-y-6">
+        <div className="flex items-center justify-between">
       <button
       onClick={() => router.push("/dashboard")}
-        className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full cursor-pointer hover:bg-white hover:text-black transition duration-300 ease-in-out "
+        className="px-4 py-2 bg-black border-2 border-white rounded-full hover:bg-white hover:text-black transition "
       >
-      go back
+      go back :3
       </button>
-      <h1 className="text-2xl font-bold mb-4">CGPA Dashboard</h1>
+      <h1 className="text-3xl font-bold">CGPA Dashboard</h1>
+        </div>
 
-      <div className="mb-6">
-        <label className="mr-2 font-semibold">Select Semester:</label>
-        <select
-          value={semesterSlot}
-          onChange={e => setSemesterSlot(Number(e.target.value))}
-          className="p-2 rounded bg-zinc-800"
-        >
-          {semesterOptions.map(s => (
-            <option key={s.slot} value={s.slot}>{s.name}</option>
-          ))}
-        </select>
+        {/*Below is the existing button, above is the headers section */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-zinc-800 p-4 rounded-xl">
+          <label className="block text-sm text-zinc-400 mb-2">Select Semester:</label>
+          
+          <select
+            value={semesterSlot}
+            onChange={e => setSemesterSlot(Number(e.target.value))}
+            className="w-full p-2 rounded bg-zinc-900"
+          >
+            {semesterOptions.map(s => (
+              <option key={s.slot} value={s.slot}>{s.name}</option>
+            ))}
+          </select>
+        
       </div>
-
+          <div className="bg-zinc-800 p-4 rounded-xl text-center">
+            <p className="text-sm text-zinc-400"> Semester GPA</p>
+            <p className="text-3xl font-bold">{gpa !== null ? gpa.toFixed(2) : "N/A"}</p>
+            </div>
+      </div>  
       <div className="mb-6 text-lg">
-        Semester GPA: <span className="font-bold">{gpa ?? "N/A"}</span>
+        Semester GPA: <span className="font-bold">{gpa !== null ? gpa.toFixed(2) : "N/A"}</span>
       </div>
 
-      <form onSubmit={handleSubmit} className="mb-8 space-y-2 max-w-md">
+      <form 
+        onSubmit={handleSubmit} 
+        className="bg-zinc-800 p-6 rounded-xl space-y-4 w-full"
+        >
+          <div className="grid grid-cols-2 gap-3">
+            
         <input placeholder="Course Name" required value={formData.name}
           onChange={e => setFormData({ ...formData, name: e.target.value })}
-          className="w-full p-2 rounded bg-zinc-800" />
+          className="w-full p-2 rounded bg-zinc-800 border-2 border-white" />
+
         <input placeholder="Course Code (optional)" value={formData.code}
           onChange={e => setFormData({ ...formData, code: e.target.value })}
-          className="w-full p-2 rounded bg-zinc-800" />
+          className="w-full p-2 rounded bg-zinc-800 border-2 border-white" />
+
         <input type="number" placeholder="Credit" required value={formData.credit}
           onChange={e => setFormData({ ...formData, credit: e.target.value })}
-          className="w-full p-2 rounded bg-zinc-800" />
+          className="w-full p-2 rounded bg-zinc-800 border-2 border-white" />
+
         <input type="number" placeholder="Mark (optional)" value={formData.mark}
           onChange={e => setFormData({ ...formData, mark: e.target.value })}
-          className="w-full p-2 rounded bg-zinc-800" />
-        <button type="submit" className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">
+          className="w-full p-2 rounded bg-zinc-800 border-2 border-white" />
+
+          
+          </div>
+        <button
+         type="submit" 
+         className="w-full py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+         >
           {editingCourseId ? "Update Course" : "Add Course"}
         </button>
       </form>
-
-      <table className="w-full max-w-3xl border-collapse">
+    <div className="bg-zinc-800 p-4 rounded-xl overflow-x-auto">
+      <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-zinc-700">
+          <tr 
+          className="border-b border-zinc-700 hover:bg-zinc-900">
             <th className="text-left p-2">Name</th>
             <th className="text-left p-2">Code</th>
             <th className="p-2">Credit</th>
@@ -210,6 +238,8 @@ async function fetchCourses() {
           ))}
         </tbody>
       </table>
+      </div>
+      </div>
     </main>
   );
 }
