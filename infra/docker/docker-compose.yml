@@ -11,6 +11,8 @@ services:
       - "3000:3000"
     env_file:
       - .env.docker
+    environment:
+      - TZ=Asia/Kuala_Lumpur
     depends_on:
       - db
 
@@ -18,6 +20,8 @@ services:
     image: postgres:16-alpine
     container_name: baruashub-db
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Kuala_Lumpur
     env_file:
       - .env.docker
     ports:
