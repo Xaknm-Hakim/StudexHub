@@ -7,6 +7,32 @@ import {
   isValidSemesterSlot,
 } from "@/src/lib/semester";
 
+export async function GET() {
+  const userId = await requireUserId();
+
+  const courses = await prisma.course.findMany({
+    where: {
+      semester: {
+        userId,
+      },
+    },
+    include: {
+      semester: {
+        select: {
+          id: true,
+          slot: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return NextResponse.json({ courses });
+}
+
 export async function POST(req: Request) {
   const userId = await requireUserId();
 
