@@ -14,6 +14,7 @@ WORKDIR /app
 
 ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
+ENV TZ=Asia/Kuala_Lumpur
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -27,7 +28,10 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
+RUN apk add --no-cache tzdata
+
 ENV NODE_ENV=production
+ENV TZ=Asia/Kuala_Lumpur
 
 COPY package.json package-lock.json ./
 COPY --from=builder /app/node_modules ./node_modules
