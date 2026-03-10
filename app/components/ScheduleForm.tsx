@@ -1,32 +1,79 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+type ClassSchedule = {
+  id: string
+  title: string
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  location: string | null
+}
 
 type Props = {
   onSuccess: () => void;
+  editingSchedule: ClassSchedule | null;
+  clearEdit: () => void;
 };
 
-export default function ScheduleForm({ onSuccess }: Props) {
+export default function ScheduleForm({ onSuccess, editingSchedule, clearEdit }: Props) {
+  useEffect(() => {
+    if (editingSchedule) {
+      setTitle(editingSchedule.title ?? "")
+      setDayOfWeek(editingSchedule.dayOfWeek ?? 1)
+      setStartTime(editingSchedule.startTime ?? "")
+      setEndTime(editingSchedule.endTime ?? "")
+      setLocation(editingSchedule.location ?? "")
+    }
+  }, [editingSchedule]);
+
   const [title, setTitle] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState(1);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+
+async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault()
+
+  if (editingSchedule) {
+    await fetch(`/api/class-schedules/${editingSchedule.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        dayOfWeek,
+        startTime,
+        endTime,
+        location,
+      }),
+    })
+
+    clearEdit()
+  } else {
     await fetch("/api/class-schedules", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, dayOfWeek, startTime, endTime, location }),
-    });
-    setTitle("");
-    setDayOfWeek(1);
-    setStartTime("");
-    setEndTime("");
-    setLocation("");
-    onSuccess(); // refresh the list in page.tsx
+      body: JSON.stringify({
+        title,
+        dayOfWeek,
+        startTime,
+        endTime,
+        location,
+      }),
+    })
   }
+
+  setTitle("");
+  setDayOfWeek(1);
+  setStartTime("");
+  setEndTime("");
+  setLocation("");
+
+  onSuccess()
+}
 
   return (
     <form onSubmit={handleSubmit} className="mb-6 space-y-2">
@@ -69,7 +116,7 @@ export default function ScheduleForm({ onSuccess }: Props) {
         onChange={(e) => setLocation(e.target.value)}
       />
       <button className="w-full py-2 bg-white text-black rounded font-semibold">
-        Add Class
+        {editingSchedule ? "Update Class" : "Add Class"}
       </button>
     </form>
   );
