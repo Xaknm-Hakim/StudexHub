@@ -41,7 +41,7 @@ This project functions as a structured technical playground where we practice di
                   <div className="w-24 h-24 rounded-full 
                   overflow-hidden mb-4">
                     <Image
-                    src="/[main web] icon.jpg"
+                    src="/pfp Zerpo.jpg"
                     alt="Zerpo"
                     width={96}
                     height={96}

@@ -54,7 +54,7 @@ export default function AssignmentForm({
   };
 
   return (
-    <main className="gradient-to-br from-black via-zinc-900 to-black">
+    
     <form
       onSubmit={handleSubmit}
       className="bg-zinc-800 p-6 rounded-xl space-y-4 text-white w-full max-w-md mx-auto"
@@ -68,21 +68,21 @@ export default function AssignmentForm({
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Assignment Title"
-        className="w-full bg-zinc-900 rounded p-2"
+        className="w-full bg-zinc-900 rounded-lg p-2"
       />
 
       <input
         type="date"
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
-        className="w-full bg-zinc-900 rounded p-2"
+        className="w-full bg-zinc-900 rounded-lg p-2"
       />
 
       <textarea
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Notes (optional)"
-        className="w-full bg-zinc-900 rounded p-2"
+        className="w-full bg-zinc-900 rounded-lg p-2"
       />
 
       <div className="grid grid-cols-2 gap-3">
@@ -91,7 +91,7 @@ export default function AssignmentForm({
           onChange={(e) =>
             setPriority(e.target.value as "LOW" | "MEDIUM" | "HIGH")
           }
-          className="p-2 rounded bg-zinc-900"
+          className="p-2 rounded-lg bg-zinc-900"
           >
             <option value="LOW">Low Priority</option>
             <option value="MEDIUM">Medium Priority</option>
@@ -100,7 +100,7 @@ export default function AssignmentForm({
           
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="bg-black text-white px-4 py-2 rounded-lg hover:bg-white hover:text-black transition"
         >
           {editing ? "Update" : "Add"}
         </button>
@@ -117,6 +117,5 @@ export default function AssignmentForm({
         )}
       
     </form>
-    </main>
   );
 }
