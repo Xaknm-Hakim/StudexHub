@@ -81,7 +81,7 @@ export default function DashboardPage() {
           </button>
 
           <button onClick={() => router.push("/schedules")} className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full hover:bg-white hover:text-black">
-          Schedule
+          Schedule unfinished
           </button>
 
           <button onClick={() => router.push("/about")} className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full hover:bg-white hover:text-black">

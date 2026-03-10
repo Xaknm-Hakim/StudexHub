@@ -83,24 +83,34 @@ export default function AssignmentsPage() {
   };
 
   return (
-    <div className="p-6 space-y-8">
-      <button
-      onClick={() => router.push("/dashboard")}
-      className="px-4 py-2 bg-black font-semibold text-white border-2 border-white rounded-full cursor-pointer hover:bg-white hover:text-black transition duration-300 ease-in-out ">
-      ← Back to Dashboard
-      </button>
+    
+    <main className="min-h-screen bg-gradient-to-br from-mist-900 via-zinc-900 to-black text-white py-10">
+      <div className="w-full mx-auto px-6 space-y-6">
 
-      <AssignmentForm
-        onAdd={addOrUpdateAssignment}
-        editing={editing}
-        onCancel={() => setEditing(null)}
-      />
+          <h1 className="text-2xl font-bold text-center">Assignments</h1>
+            <button
+                onClick={() => router.push("/dashboard")}
+                className="px-4 py-1 bg-black font-monospace text-white border-1 border-white rounded-lg cursor-pointer hover:bg-white hover:text-black transition duration-300 ease-in-out ">
+                Main Page
+            </button>
 
-      <AssignmentTable
-        assignments={assignments}
-        onDelete={deleteAssignment}
-        onEdit={setEditing}
-      />
-    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">  
+            <div className="lg:col-span-1">    
+                <AssignmentForm
+                  onAdd={addOrUpdateAssignment}
+                  editing={editing}
+                  onCancel={() => setEditing(null)}
+                />
+            </div>
+              <div className="lg:col-span-2">
+                <AssignmentTable
+                  assignments={assignments}
+                  onDelete={deleteAssignment}
+                  onEdit={setEditing}
+                />
+            </div>
+        </div>
+      </div>
+    </main>
   );
 }
