@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Summary, SemesterStat } from "@/src/lib/types/summary";
 import { useRouter } from "next/navigation";
+import NotificationBell from "@/components/NotificationBell";
+
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -28,8 +30,8 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-black text-white">
       <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl space-y-4">
-        <h1 className="text-3xl text-center font-bold tracking-tight">Welcome Home Motherfucker</h1>
-        <p className="text-center text-zinc-400 text-sm">suck my ballsss?</p>
+        <h1 className="text-3xl text-center font-bold tracking-tight">What's good twin?</h1>
+        <p className="text-center text-zinc-400 text-sm">wanna do something?</p>
 
       {/* this is the summary cards*/}
         <div className="grid grid-cols-2 gap-4">
