@@ -9,28 +9,42 @@ import NotificationBell from "@/components/NotificationBell";
 export default function DashboardPage() {
   const router = useRouter();
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [name, setName] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchSummary() {
+    async function fetchData() {
       try {
+        //Fetcing summary
         const res = await fetch("/api/academics/summary", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch summary");
 
         const data: Summary = await res.json();
         setSummary(data);
+
+        //fetching user name
+        const userRes = await fetch("api/auth/me");
+        if (!userRes.ok) throw new Error("failed to fetch user");
+
+        const userData = await userRes.json();
+        setName(userData.user.name);
+
       } catch (err) {
         console.error(err);
-        setSummary(null);
+        
       }
     }
 
-    fetchSummary();
+    fetchData();
   }, []);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-black text-white">
-      <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl space-y-4">
-        <h1 className="text-3xl text-center font-bold tracking-tight">What's good twin?</h1>
+      <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl space-y-4 relative">
+
+        <div className="absolute top-4 right-4">
+          <NotificationBell />
+        </div>
+        <h1 className="text-3xl text-center font-bold tracking-tight">What's good{name ? `, ${name}` : ""}?</h1>
         <p className="text-center text-zinc-400 text-sm">wanna do something?</p>
 
       {/* this is the summary cards*/}
