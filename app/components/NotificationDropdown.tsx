@@ -12,19 +12,21 @@ type Props = {
     notifications: Notification[]
     onMarkRead: (id:string) => void
     onMarkAll: () => void
+    onClickNotification?: (n: Notification) => void
 }
 
 export default function NotificationDropdown({
     notifications,
     onMarkRead,
     onMarkAll,
+    onClickNotification,
 }: Props) {
     return (
         <div className="absolute right-0 mt-3 w-80 bg-zinc-900 boder border-zinc-700 rounded-lg shadow-lg">
 
             {/* Header */}
             <div className="flex justify-between items-center p-3 border0b border-zinc-700">
-                <p className="font-semibold"> Notifucations</p>
+                <p className="font-semibold"> Notifications</p>
 
                 <button
                 onClick={onMarkAll}
@@ -45,9 +47,11 @@ export default function NotificationDropdown({
                 {notifications.map((n) => (
                     <div
                     key={n.id}
-                    onClick={() => onMarkRead(n.id)}
-                    className={`p-3 border-b border-zinc-800 cursor-pointer hover:bg-zinc-800 transition
-                        ${!n.isRead ? "bg-zinc-800 font-semibold" : "opacity-70"}`}
+                    className={`p-3 border-b border-zinc-800 cursor-pointer hover:bg-zinc-800 transition ${!n.isRead ? "bg-zinc-800 font-semibold" : "opacity-70"}`}
+                    onClick={() => {
+                    onMarkRead(n.id)
+                    if (onClickNotification) onClickNotification(n)
+                    }}
                     >
                         <p className="text-sm">{n.title}</p>
                         <p className="text-xs text-zinc-400 mt-1">

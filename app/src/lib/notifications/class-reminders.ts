@@ -81,6 +81,7 @@ export async function runClassReminders() {
       type: NotificationType.CLASS_TOMORROW_SUMMARY,
       title,
       message,
+      link: "/schedules" //new line and feature
     });
 
     await createDeliveryLog({
