@@ -162,6 +162,7 @@ Frontend uses these APIs:
 GET    /api/notifications
 PATCH  /api/notifications/[id]/read
 PATCH  /api/notifications/read-all
+DELETE /api/notifications/[id]
 ```
 
 Backend cron uses:
@@ -289,6 +290,23 @@ Status code:
 ```
 
 ---
+
+# DELETE /api/notifications/[id]
+
+## Purpose
+
+Delete a single notification from the user's inbox.
+
+Used when:
+
+* user clicks a "delete" button
+* user clears a specific notification
+* user wants to remove old reminders
+
+This only deletes notifications that belong to the **currently authenticated user**.
+
+---
+
 
 # PATCH /api/notifications/read-all
 
