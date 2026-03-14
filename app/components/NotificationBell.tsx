@@ -27,6 +27,14 @@ export default function NotificationBell() {
     return () => clearInterval(interval)
   }, [])
 
+  async function deleteNotification(id: string) {
+    await fetch(`/api/notifications/${id}`, {
+      method: "DELETE"
+    })
+
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    setUnreadCount((prev) => Math.max(prev, -1,0))
+  }
   async function handleClick(notification: Notification) {
     await fetch(`/api/notifications/${notification.id}/read`, {
       method: "PATCH"
@@ -87,22 +95,38 @@ export default function NotificationBell() {
               </div>
             )}
 
-            {notifications.map((n) => (
-              <div
-                key={n.id}
-                onClick={() => handleClick(n)}
-                className={`p-3 cursor-pointer border-b border-zinc-800 hover:bg-zinc-800
-                ${!n.isRead ? "bg-zinc-800/40" : ""}`}
-              >
-                <div className="font-medium text-sm">
-                  {n.title}
-                </div>
+        {notifications.map((n) => (
+          <div
+            key={n.id}
+            className={`relative p-3 cursor-pointer border-b border-zinc-800 hover:bg-zinc-800
+            ${!n.isRead ? "bg-zinc-800/40" : ""}`}
+          >
 
-                <div className="text-xs text-zinc-400 mt-1">
-                  {n.message}
-                </div>
+            <div onClick={() => handleClick(n)}>
+
+              <div className="font-medium text-sm">
+                {n.title}
               </div>
-            ))}
+
+              <div className="text-xs text-zinc-400 mt-1">
+                {n.message}
+              </div>
+
+            </div>
+
+            {/* delete button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                deleteNotification(n.id)
+              }}
+              className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-xs text-zinc-400 hover:text-red-400"
+            >
+              ✕
+            </button>
+
+          </div>
+        ))}
 
           </div>
 
