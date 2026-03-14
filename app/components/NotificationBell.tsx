@@ -48,7 +48,7 @@ export default function NotificationBell() {
     })
 
     setNotifications((prev) => prev.filter((n) => n.id !== id))
-    setUnreadCount((prev) => Math.max(prev, -1,0))
+    setUnreadCount((prev) => Math.max(prev -1,0))
   }
   async function handleClick(notification: Notification) {
     await fetch(`/api/notifications/${notification.id}/read`, {
@@ -58,7 +58,7 @@ export default function NotificationBell() {
     if (notification.assignmentId) {
       router.push(`/assignments`)
     } else {
-      router.push("/schedule")
+      router.push("/schedules")
     }
   }
 
@@ -113,7 +113,7 @@ export default function NotificationBell() {
         {notifications.map((n) => (
           <div
             key={n.id}
-            className={`relative p-3 cursor-pointer border-b border-zinc-800 hover:bg-zinc-800
+            className={`group relative p-3 cursor-pointer border-b border-zinc-800 hover:bg-zinc-800
             ${!n.isRead ? "bg-zinc-800/40" : ""}`}
           >
 
