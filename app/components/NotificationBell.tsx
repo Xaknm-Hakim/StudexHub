@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef,  useState } from "react"
 import { useRouter } from "next/navigation"
 
 import type { Notification } from "@/src/lib/types/notification"
@@ -11,6 +11,7 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   async function fetchNotifications() {
     const res = await fetch("/api/notifications")
@@ -24,7 +25,21 @@ export default function NotificationBell() {
     fetchNotifications()
 
     const interval = setInterval(fetchNotifications, 30000)
-    return () => clearInterval(interval)
+
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
   }, [])
 
   async function deleteNotification(id: string) {
@@ -56,7 +71,7 @@ export default function NotificationBell() {
   }
 
   return (
-    <div className="relative">
+    <div ref={dropdownRef} className="relative">
       
       {/* Bell */}
       <button
@@ -122,7 +137,7 @@ export default function NotificationBell() {
               }}
               className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-xs text-zinc-400 hover:text-red-400"
             >
-              ✕
+              Delete
             </button>
 
           </div>
