@@ -10,7 +10,7 @@ export default function MainPage() {
         <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-black text-white">
             <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl space-y-4">        
 
-                    <h1 className="text-2xl text-center font-bold">Yo, welcome to StudexCenter</h1>
+                    <h1 className="text-2xl text-center font-bold">Yo, welcome to StudexHub</h1>
                     <p className="text-sm text-center text-grey-400"> formerly known as BaruasHub (well it's still is lmao)</p>
                     
                     <div className="text-center text-sm text-gray-400">
