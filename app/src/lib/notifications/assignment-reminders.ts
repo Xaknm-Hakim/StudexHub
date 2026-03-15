@@ -97,6 +97,7 @@ export async function runAssignmentReminders() {
           type,
           title,
           message,
+          link: "/assignments",
           assignmentId: assignment.id,
           assignmentTitleSnapshot: assignment.title,
           courseNameSnapshot: assignment.course?.name ?? null,

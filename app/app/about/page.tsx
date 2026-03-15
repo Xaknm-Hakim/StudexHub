@@ -24,12 +24,12 @@ BaruasHub is a static-first collaborative web project designed to simulate real-
 This project functions as a structured technical playground where we practice disciplined development, clear documentation, and defined engineering roles — while building a scalable and meaningful platform.
         </p>
 
-        <div className="flex gap-2 mt-4">
-          <span className="bg-zinc-800 px-3 py-1 rounded-full text-sm">Next.js</span>
-          <span className="bg-zinc-800 px-3 py-1 rounded-full text-sm">Prisma</span>
-          <span className="bg-zinc-800 px-3 py-1 rounded-full text-sm">PostgreSQL</span>
-          <span className="bg-zinc-800 px-3 py-1 rounded-full text-sm">TailwindCSS</span>
-          <span className="bg-zinc-800 px-3 py-1 rounded-full text-sm">Typescript</span>
+        <div className="flex flex-wrap gap-2 mt-4">
+          <span className="bg-zinc-800 px-3 py-1 rounded-full text-xs sm:text-sm">Next.js</span>
+          <span className="bg-zinc-800 px-3 py-1 rounded-full text-xs sm:text-sm">Prisma</span>
+          <span className="bg-zinc-800 px-3 py-1 rounded-full text-xs sm:text-sm">PostgreSQL</span>
+          <span className="bg-zinc-800 px-3 py-1 rounded-full text-xs sm:text-sm">TailwindCSS</span>
+          <span className="bg-zinc-800 px-3 py-1 rounded-full text-xs sm:text-sm">Typescript</span>
         </div>
       </div>
       
@@ -47,7 +47,7 @@ This project functions as a structured technical playground where we practice di
                     height={96}
                     className="object-cover w-full h-full"/>
                      </div>
-            <h2 className="text-xl font-semibold">Zerpo</h2>
+            <h2 className="text-xl font-semibold">Zerpo (Zuddin)</h2>
             <p className="text-sm text-zinc-400 mb-3">Lead Frontend Developer</p>
 
             <p className="text-sm text-zinc-400">
@@ -55,9 +55,13 @@ This project functions as a structured technical playground where we practice di
             </p>
 
             <div className="flex gap-3 mt-4">
-              <button className="bg-blue-600 px-3 py-1 rounded text-sm">
+              <a 
+              href={"https://github.com/Zerpo-Zero"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-blue-600 px-3 py-1 rounded text-sm">
                 GitHub
-              </button>
+              </a>
               <button className="bg-zinc-800 px-3 py-1 rounded text-sm">
                 LinkedIn
               </button>
@@ -72,7 +76,7 @@ This project functions as a structured technical playground where we practice di
                    <div className="w-24 h-24 rounded-full 
                   overflow-hidden mb-4">
                     <Image
-                    src="/pfp Hakim.jpg"
+                    src="/pfp hakim v2.jpg"
                     alt="Hakim"
                     width={96}
                     height={96}
@@ -88,9 +92,13 @@ This project functions as a structured technical playground where we practice di
             </p>
 
             <div className="flex gap-3 mt-4">
-              <button className="bg-blue-600 px-3 py-1 rounded text-sm">
+              <a 
+              href={"https://github.com/whateverItIs-26"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-blue-600 px-3 py-1 rounded text-sm">
                 GitHub
-              </button>
+              </a>
               <button className="bg-zinc-800 px-3 py-1 rounded text-sm">
                 LinkedIn
               </button>
@@ -101,14 +109,21 @@ This project functions as a structured technical playground where we practice di
 
               <div className="bg-zinc-900 rounded-2xl p-6 shadow-lg hover:scale-105 transition duration-300">
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-24 h-24 rounded-full bg-zinc-800 mb-4" />
+                   <div className="w-24 h-24 rounded-full 
+                  overflow-hidden mb-4">
+                    <Image
+                    src="/default pfp.jpg"
+                    alt="Hakim"
+                    width={96}
+                    height={96}/>
+                    </div>
             
 
-            <h2 className="text-xl font-semibold">Apam Barua</h2>
-            <p className="text-sm text-zinc-400 mb-3">Frontend Assistant</p>
+            <h2 className="text-xl font-semibold">Afham</h2>
+            <p className="text-sm text-zinc-400 mb-3">Frontend Dev</p>
 
             <p className="text-sm text-zinc-400">
-              Responsible for UI design, dashboard logic, and frontend architecture.
+              Responsible for suggesting ideas to add
             </p>
 
             <div className="flex gap-3 mt-4">
@@ -125,14 +140,21 @@ This project functions as a structured technical playground where we practice di
 
               <div className="bg-zinc-900 rounded-2xl p-6 shadow-lg hover:scale-105 transition duration-300">
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-24 h-24 rounded-full bg-zinc-800 mb-4" />
+                   <div className="w-24 h-24 rounded-full 
+                  overflow-hidden mb-4">
+                    <Image
+                    src="/default pfp.jpg"
+                    alt="Hakim"
+                    width={96}
+                    height={96}/>
+                    </div>
             
 
-            <h2 className="text-xl font-semibold">Faiz Barua</h2>
-            <p className="text-sm text-zinc-400 mb-3">Backend Assistant</p>
+            <h2 className="text-xl font-semibold">Faiz</h2>
+            <p className="text-sm text-zinc-400 mb-3">QA Engineer</p>
 
             <p className="text-sm text-zinc-400">
-              Responsible for API, security, and backend architecture
+              Assuring the work quality from each members
             </p>
 
             <div className="flex gap-3 mt-4">

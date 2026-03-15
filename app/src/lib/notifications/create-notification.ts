@@ -9,6 +9,7 @@ type CreateNotificationArgs = {
   assignmentId?: string | null;
   assignmentTitleSnapshot?: string | null;
   courseNameSnapshot?: string | null;
+  link?: string;
 };
 
 export async function createNotification(args: CreateNotificationArgs) {
