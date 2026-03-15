@@ -2,9 +2,9 @@ import { google } from "googleapis";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-const CLIENT_ID = "1042533433552-nompp83ia3u7adq5ppruptnt6ksvvr9v.apps.googleusercontent.com";
-const CLIENT_SECRET = "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";
-const REDIRECT_URI = "http://localhost";
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
+const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
+const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
 
 async function main() {
   const oauth2Client = new google.auth.OAuth2(
