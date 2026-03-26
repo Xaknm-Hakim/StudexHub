@@ -1,0 +1,23 @@
+Hello,
+
+I would like to inform you that **StudexHub will be temporarily unavailable due to scheduled maintenance and system downtime**.
+
+**🛠 Maintenance Window**
+
+* **Start:** Friday, 10:00 AM (GMT+8)
+* **End:** Saturday Evening (GMT+8)
+
+During this period, the system will be **offline and inaccessible**. This downtime is planned to ensure system stability and allow necessary updates and maintenance.
+
+**📌 What you should know:**
+
+* Please make sure to check your assignments or important data before the downtime begins.
+* Any ongoing activity during the maintenance window may not be saved.
+* All services will resume as normal once the maintenance is completed.
+
+I will notify you again once the system is fully back online.
+
+Thank you for your understanding and patience.
+
+Best regards,
+StudexHub Admin
