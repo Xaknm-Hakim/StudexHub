@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AssignmentPriority, AssignmentStatus } from "@prisma/client";
+import { AssignmentPriority, AssignmentStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { CreateAssignmentBody } from "@/src/lib/types/requests";
+import { getErrorMessage } from "@/src/lib/types/common";
 
 function computeDaysLeft(dueDate: Date) {
   const today = new Date();
@@ -15,7 +17,17 @@ function computeDaysLeft(dueDate: Date) {
 }
 
 function isAssignmentPriority(value: unknown): value is AssignmentPriority {
-  return typeof value === "string" && Object.values(AssignmentPriority).includes(value as AssignmentPriority);
+  return (
+    typeof value === "string" &&
+    Object.values(AssignmentPriority).includes(value as AssignmentPriority)
+  );
+}
+
+function isAssignmentStatus(value: unknown): value is AssignmentStatus {
+  return (
+    typeof value === "string" &&
+    Object.values(AssignmentStatus).includes(value as AssignmentStatus)
+  );
 }
 
 // GET /api/assignments?status=PENDING|DONE&courseId=...&q=...&sort=dueDate&order=asc
@@ -24,21 +36,51 @@ export async function GET(req: NextRequest) {
     const userId = await requireUserId();
     const url = new URL(req.url);
 
-    const status = url.searchParams.get("status");
+    const statusParam = url.searchParams.get("status");
     const courseId = url.searchParams.get("courseId");
     const q = url.searchParams.get("q")?.trim();
-    const sort = url.searchParams.get("sort") ?? "dueDate";
-    const order =
+    const sortParam = url.searchParams.get("sort") ?? "dueDate";
+    const order: Prisma.SortOrder =
       (url.searchParams.get("order") ?? "asc").toLowerCase() === "desc" ? "desc" : "asc";
 
-    const where: any = { userId };
-    if (status) where.status = status;
-    if (courseId) where.courseId = courseId;
-    if (q) where.title = { contains: q, mode: "insensitive" };
+    const where: Prisma.AssignmentWhereInput = { userId };
+
+    if (statusParam) {
+      if (!isAssignmentStatus(statusParam)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Invalid status",
+          },
+          { status: 400 }
+        );
+      }
+
+      where.status = statusParam;
+    }
+
+    if (courseId) {
+      where.courseId = courseId;
+    }
+
+    if (q) {
+      where.title = { contains: q, mode: "insensitive" };
+    }
+
+    const allowedSortFields: Record<string, true> = {
+      dueDate: true,
+      createdAt: true,
+      updatedAt: true,
+      title: true,
+      priority: true,
+      status: true,
+    };
+
+    const sortField = allowedSortFields[sortParam] ? sortParam : "dueDate";
 
     const rows = await prisma.assignment.findMany({
       where,
-      orderBy: { [sort]: order },
+      orderBy: { [sortField]: order },
       select: {
         id: true,
         title: true,
@@ -50,59 +92,108 @@ export async function GET(req: NextRequest) {
         createdAt: true,
         updatedAt: true,
         courseId: true,
-        course: { select: { id: true, name: true, code: true, credit: true } },
+        course: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            credit: true,
+          },
+        },
       },
     });
 
-    const data = rows.map((a) => ({ ...a, ...computeDaysLeft(a.dueDate) }));
-    return NextResponse.json({ ok: true, data });
-  } catch (e: any) {
-    if (e?.message === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const data = rows.map((assignment) => ({
+      ...assignment,
+      ...computeDaysLeft(assignment.dueDate),
+    }));
+
+    return NextResponse.json({
+      success: true,
+      data,
+    });
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+
+    if (message === "UNAUTHORIZED") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
     }
 
-    console.error(e);
-    return NextResponse.json({ error: "Failed to fetch assignments" }, { status: 500 });
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to fetch assignments",
+      },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const userId = await requireUserId();
-    const body = await req.json();
+    const body = (await req.json()) as CreateAssignmentBody;
 
-    const title = (body?.title as string | undefined)?.trim();
-    const dueDateRaw = body?.dueDate as string | undefined;
-    const notes = (body?.notes as string | undefined)?.trim() || null;
-    const courseId = (body?.courseId as string | undefined) ?? null;
+    const title = body.title?.trim();
+    const dueDateRaw = body.dueDate;
+    const notes = body.notes?.trim() || null;
+    const courseId = body.courseId ?? null;
 
-    const rawPriority = body?.priority;
-    const priority: AssignmentPriority = rawPriority == null
-      ? AssignmentPriority.MEDIUM
-      : isAssignmentPriority(rawPriority)
-        ? rawPriority
-        : AssignmentPriority.MEDIUM;
+    const rawPriority = body.priority;
+    const priority: AssignmentPriority =
+      rawPriority == null
+        ? AssignmentPriority.MEDIUM
+        : isAssignmentPriority(rawPriority)
+          ? rawPriority
+          : AssignmentPriority.MEDIUM;
 
     if (!title || !dueDateRaw) {
       return NextResponse.json(
-        { error: "title and dueDate are required" },
+        {
+          success: false,
+          error: "title and dueDate are required",
+        },
         { status: 400 }
       );
     }
 
     const dueDate = new Date(dueDateRaw);
+
     if (Number.isNaN(dueDate.getTime())) {
-      return NextResponse.json({ error: "Invalid dueDate" }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid dueDate",
+        },
+        { status: 400 }
+      );
     }
 
     if (courseId) {
       const owned = await prisma.course.findFirst({
-        where: { id: courseId, semester: { userId } },
+        where: {
+          id: courseId,
+          semester: { userId },
+        },
         select: { id: true },
       });
 
       if (!owned) {
-        return NextResponse.json({ error: "Invalid courseId" }, { status: 400 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Invalid courseId",
+          },
+          { status: 400 }
+        );
       }
     }
 
@@ -127,20 +218,48 @@ export async function POST(req: NextRequest) {
         createdAt: true,
         updatedAt: true,
         courseId: true,
-        course: { select: { id: true, name: true, code: true, credit: true } },
+        course: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            credit: true,
+          },
+        },
       },
     });
 
     return NextResponse.json(
-      { ok: true, data: { ...created, ...computeDaysLeft(created.dueDate) } },
+      {
+        success: true,
+        data: {
+          ...created,
+          ...computeDaysLeft(created.dueDate),
+        },
+      },
       { status: 201 }
     );
-  } catch (e: any) {
-    if (e?.message === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+
+    if (message === "UNAUTHORIZED") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
     }
 
-    console.error(e);
-    return NextResponse.json({ error: "Failed to create assignment" }, { status: 500 });
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to create assignment",
+      },
+      { status: 500 }
+    );
   }
 }

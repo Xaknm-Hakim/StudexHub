@@ -1,53 +1,147 @@
 import { NextRequest, NextResponse } from "next/server";
+import { AssignmentPriority, AssignmentStatus } from "@prisma/client";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { UpdateAssignmentBody } from "@/src/lib/types/requests";
+import { getErrorMessage } from "@/src/lib/types/common";
 
 function computeDaysLeft(dueDate: Date) {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const due = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
   const daysLeft = Math.round((due.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  const dueStatus = daysLeft < 0 ? "OVERDUE" : daysLeft === 0 ? "DUE_TODAY" : "DUE_IN_X_DAYS";
+  const dueStatus =
+    daysLeft < 0 ? "OVERDUE" : daysLeft === 0 ? "DUE_TODAY" : "DUE_IN_X_DAYS";
+
   return { daysLeft, dueStatus };
 }
 
-export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+function isAssignmentPriority(value: unknown): value is AssignmentPriority {
+  return (
+    typeof value === "string" &&
+    Object.values(AssignmentPriority).includes(value as AssignmentPriority)
+  );
+}
+
+function isAssignmentStatus(value: unknown): value is AssignmentStatus {
+  return (
+    typeof value === "string" &&
+    Object.values(AssignmentStatus).includes(value as AssignmentStatus)
+  );
+}
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function PATCH(req: NextRequest, ctx: RouteContext) {
   try {
     const userId = await requireUserId();
     const { id } = await ctx.params;
 
-    const body = await req.json();
-    const data: any = {};
+    const body = (await req.json()) as UpdateAssignmentBody;
+    const data: {
+      title?: string;
+      notes?: string | null;
+      priority?: AssignmentPriority;
+      dueDate?: Date;
+      status?: AssignmentStatus;
+      completedAt?: Date | null;
+      courseId?: string | null;
+    } = {};
 
-    if (body?.title !== undefined) data.title = (body.title as string).trim();
-    if (body?.notes !== undefined) data.notes = ((body.notes as string) ?? "").trim() || null;
+    if (body.title !== undefined) {
+      const title = body.title.trim();
 
-    if (body?.priority !== undefined) data.priority = body.priority;
-
-    if (body?.dueDate !== undefined) {
-      const d = new Date(body.dueDate as string);
-      if (Number.isNaN(d.getTime())) return NextResponse.json({ error: "Invalid dueDate" }, { status: 400 });
-      data.dueDate = d;
-    }
-
-    if (body?.status !== undefined) {
-      const status = body.status as string;
-      if (status !== "PENDING" && status !== "DONE") {
-        return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+      if (!title) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "title cannot be empty",
+          },
+          { status: 400 }
+        );
       }
-      data.status = status;
-      data.completedAt = status === "DONE" ? new Date() : null;
+
+      data.title = title;
     }
 
-    if (body?.courseId !== undefined) {
-      const courseId = body.courseId as string | null;
+    if (body.notes !== undefined) {
+      data.notes = body.notes?.trim() || null;
+    }
+
+    if (body.priority !== undefined) {
+      if (!isAssignmentPriority(body.priority)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Invalid priority",
+          },
+          { status: 400 }
+        );
+      }
+
+      data.priority = body.priority;
+    }
+
+    if (body.dueDate !== undefined) {
+      const dueDate = new Date(body.dueDate);
+
+      if (Number.isNaN(dueDate.getTime())) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Invalid dueDate",
+          },
+          { status: 400 }
+        );
+      }
+
+      data.dueDate = dueDate;
+    }
+
+    if (body.status !== undefined) {
+      if (!isAssignmentStatus(body.status)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Invalid status",
+          },
+          { status: 400 }
+        );
+      }
+
+      data.status = body.status;
+      data.completedAt = body.status === AssignmentStatus.DONE ? new Date() : null;
+    }
+
+    if (body.completedAt !== undefined && body.status === undefined) {
+      data.completedAt = body.completedAt ? new Date(body.completedAt) : null;
+    }
+
+    if (body.courseId !== undefined) {
+      const courseId = body.courseId;
+
       if (courseId) {
         const owned = await prisma.course.findFirst({
-          where: { id: courseId, semester: { userId } },
+          where: {
+            id: courseId,
+            semester: { userId },
+          },
           select: { id: true },
         });
-        if (!owned) return NextResponse.json({ error: "Invalid courseId" }, { status: 400 });
+
+        if (!owned) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Invalid courseId",
+            },
+            { status: 400 }
+          );
+        }
       }
+
       data.courseId = courseId;
     }
 
@@ -56,7 +150,15 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       data,
     });
 
-    if (updated.count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (updated.count === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Not found",
+        },
+        { status: 404 }
+      );
+    }
 
     const fresh = await prisma.assignment.findFirst({
       where: { id, userId },
@@ -71,19 +173,60 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
         createdAt: true,
         updatedAt: true,
         courseId: true,
-        course: { select: { id: true, name: true, code: true, credit: true } },
+        course: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            credit: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json({ ok: true, data: { ...fresh!, ...computeDaysLeft(fresh!.dueDate) } });
-  } catch (e: any) {
-    if (e?.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    console.error(e);
-    return NextResponse.json({ error: "Failed to update assignment" }, { status: 500 });
+    if (!fresh) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...fresh,
+        ...computeDaysLeft(fresh.dueDate),
+      },
+    });
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+
+    if (message === "UNAUTHORIZED") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to update assignment",
+      },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(_req: NextRequest, ctx: RouteContext) {
   try {
     const userId = await requireUserId();
     const { id } = await ctx.params;
@@ -92,11 +235,42 @@ export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: stri
       where: { id, userId },
     });
 
-    if (deleted.count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    if (e?.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    console.error(e);
-    return NextResponse.json({ error: "Failed to delete assignment" }, { status: 500 });
+    if (deleted.count === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: null,
+      message: "Assignment deleted successfully",
+    });
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+
+    if (message === "UNAUTHORIZED") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to delete assignment",
+      },
+      { status: 500 }
+    );
   }
 }
