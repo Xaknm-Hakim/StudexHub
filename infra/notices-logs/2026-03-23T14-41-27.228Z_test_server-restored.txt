@@ -1,0 +1,26 @@
+==================================================
+StudexHub Notice Execution Log
+==================================================
+
+Timestamp: 2026-03-23T14:41:27.228Z
+Mode: test
+Template: server-restored.txt
+
+Summary
+-------
+Total users processed: 1
+Sent: 0
+No email: 0
+Failed: 1
+
+Sent Users
+----------
+- None
+
+Users With No Email
+-------------------
+- None
+
+Failed Deliveries
+-----------------
+- Admin <hakimz.7117@gmail.com> — invalid_grant

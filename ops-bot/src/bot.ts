@@ -48,6 +48,9 @@ function helpText(): string {
     "/invite - generate a new invite code",
     "/notifications - manually trigger notification job",
     "/backup - create PostgreSQL backup",
+    "/templates - list available notice templates",
+    "/notice <filename> test - send notice to admin email only",
+    "/notice <filename> - send notice to all users",
     "/restartweb - restart the web container",
   ].join("\n");
 }
@@ -55,6 +58,24 @@ function helpText(): string {
 function clearRestartWebState(): void {
   restartWebPending = false;
   restartWebExpire = 0;
+}
+
+async function runWebTsxScript(
+  scriptPath: string,
+  scriptArgs: string[] = [],
+  timeoutMs = 120_000
+): Promise<string> {
+  const { stdout, stderr } = await execFileAsync(
+    "docker",
+    ["exec", "baruashub-web", "npx", "tsx", scriptPath, ...scriptArgs],
+    {
+      timeout: timeoutMs,
+      maxBuffer: 8 * 1024 * 1024,
+    }
+  );
+
+  const output = `${stdout}${stderr}`.trim();
+  return output || "Command finished.";
 }
 
 bot.use(async (ctx, next) => {
@@ -257,6 +278,56 @@ bot.command("backup", async (ctx) => {
   } catch (error) {
     console.error("Backup failed:", error);
     await ctx.reply("Backup failed.");
+  }
+});
+
+bot.command("templates", async (ctx) => {
+  await ctx.reply("Listing notice templates...");
+
+  try {
+    const out = await runWebTsxScript("scripts/list-notices.ts");
+    await ctx.reply(out);
+  } catch (error) {
+    console.error("List templates failed:", error);
+    await ctx.reply("Failed to list notice templates.");
+  }
+});
+
+bot.command("notice", async (ctx) => {
+  const text = ctx.message.text.trim();
+  const parts = text.split(/\s+/);
+
+  const templateName = parts[1];
+  const modeArg = parts[2]?.toLowerCase();
+  const isTest = modeArg === "test";
+
+  if (!templateName) {
+    await ctx.reply("Usage: /notice <filename> [test]");
+    return;
+  }
+
+  if (!templateName.endsWith(".txt")) {
+    await ctx.reply("Notice template must be a .txt file.");
+    return;
+  }
+
+  await ctx.reply(
+    isTest
+      ? `Starting test notice...\nTemplate: ${templateName}`
+      : `Starting notice broadcast...\nTemplate: ${templateName}`
+  );
+
+  try {
+    const out = await runWebTsxScript(
+      "scripts/send-notice.ts",
+      isTest ? [templateName, "--test"] : [templateName],
+      10 * 60_000
+    );
+
+    await ctx.reply(out);
+  } catch (error) {
+    console.error("Notice command failed:", error);
+    await ctx.reply("Notice process failed.");
   }
 });
 
