@@ -1,287 +1,135 @@
-# BaruasHub
+# mini-control-plane
 
-BaruasHub is a personal academic management web application built to help diploma students manage their semester structure, courses, assignments, class schedules, and academic progress in one centralized system.
-
-This project started as a **simple static website experiment** and gradually evolved into a **full‑stack containerized web application deployed on a self‑hosted homelab server**.
-
-The goal of this project is not only to build a useful tool for students, but also to serve as a **learning platform for real-world infrastructure, backend systems, and deployment practices**.
+A lightweight Telegram-based control plane for managing and observing the StudexHub infrastructure.
 
 ---
 
-# Project Evolution
+## 📌 Overview
 
-## Phase 1 — Static Website (MVP)
+`mini-control-plane` is a system-level operations bot designed to:
 
-The earliest version of the project was a static frontend website.
+* Monitor host and service health
+* Execute controlled operational actions (restart, backup, notices)
+* Provide a secure interface for infrastructure management via Telegram
 
-Purpose:
-
-* Explore UI layout ideas
-* Understand basic project structure
-* Prototype the academic dashboard concept
-
-Limitations:
-
-* No database
-* No authentication
-* No persistence
-* Pure frontend rendering
-
-This stage served as the conceptual foundation for the full application.
+This bot is intentionally **decoupled from the StudexHub application layer**, forming a separate **ops layer** in the system architecture.
 
 ---
 
-## Phase 2 — Full Stack Application
+## 🧠 Architecture Role
 
-The project later evolved into a full-stack system with:
+The system is structured into three layers:
 
-* backend APIs
-* database persistence
-* authentication
-* structured data models
+* **App Layer** → StudexHub (Next.js + PostgreSQL)
+* **Ops Layer** → mini-control-plane (this project)
+* **Infra Layer** → Docker, systemd, Nginx, Cloudflare Tunnel
 
-Major components introduced:
-
-* Next.js application framework
-* PostgreSQL database
-* Prisma ORM
-* API routes
-
-Core features implemented:
-
-* semester management
-* course tracking
-* assignment management
-* class schedule management
-* academic summary and CGPA calculation
+This bot operates at the **Ops Layer**, acting as a bridge between the administrator and the infrastructure.
 
 ---
 
-## Phase 3 — Notification System
+## ⚙️ Key Features
 
-To make the system practical for daily student use, a notification system was added.
+### System Monitoring
 
-Current notification types:
+* `/host_status` → CPU, RAM, disk usage
+* `/system_services` → Docker, Nginx, Cloudflare Tunnel, containers
+* `/full_status` → Combined system overview
 
-### Assignment reminders
+### StudexHub Operations
 
-Triggered when assignments are:
+* `/studexhub_restart` → Safe restart with confirmation
+* `/studexhub_backup` → Database backup via `pg_dump`
+* `/studexhub_invite` → Generate invite codes
+* `/studexhub_templates` → List notice templates
+* `/studexhub_notice` → Send system-wide email notices
 
-* due tomorrow
-* due today
+### Safety Mechanisms
 
-Channels:
-
-* in‑app notifications
-* email notifications (Gmail API)
-
-### Class reminders
-
-Triggered when the user has classes tomorrow.
-
-Channel:
-
-* in‑app notification
-
-All tomorrow classes are grouped into a **single summary notification**.
+* Admin-only access
+* Confirmation system for destructive actions
+* Structured logging for all actions
 
 ---
 
-## Phase 4 — Containerization
+## 🔐 Security Model
 
-The entire application stack is containerized using Docker.
-
-Services include:
-
-* web application
-* PostgreSQL database
-
-Benefits:
-
-* consistent environments
-* easier deployment
-* reproducible builds
-
-Docker is also used to simulate a production environment during development.
+* Bot access restricted to a single admin ID
+* Critical commands require explicit confirmation (`YES`)
+* Runs under a dedicated low-privilege system user (`bot-runner`)
+* Uses shared group (`studexhub`) for controlled access to resources
 
 ---
 
-## Phase 5 — Infrastructure Deployment
+## 🧱 Deployment
 
-The application is deployed on a **self‑hosted ThinkPad server** running Linux.
+The bot runs as a **systemd service**, not inside Docker.
 
-Infrastructure components:
+### Service
 
-* Docker
-* Docker Compose
-* Nginx reverse proxy
-* Cloudflare Tunnel
-
-Deployment architecture:
-
-User
-
-→ Cloudflare
-
-→ Cloudflare Tunnel
-
-→ Nginx
-
-→ Docker container (Next.js app)
-
-→ PostgreSQL database
-
-This setup allows secure public access without directly exposing the server to the internet.
-
----
-
-# Technology Stack
-
-## Frontend
-
-* Next.js (App Router)
-* TypeScript
-* Tailwind CSS
-
-## Backend
-
-* Next.js API Routes
-
-## Database
-
-* PostgreSQL
-
-## ORM
-
-* Prisma
-
-## Infrastructure
-
-* Docker
-* Docker Compose
-* Nginx
-* Cloudflare Tunnel
-
-## Email
-
-* Gmail API
-
----
-
-# Project Structure
-
+```bash
+sudo systemctl status mini-control-plane
 ```
-.
-├── app/                    # Main full-stack Next.js application
-│   ├── app/                # App Router pages and API routes
-│   ├── components/         # Reusable frontend components
-│   ├── prisma/             # Database schema, migrations, and seed
-│   ├── public/             # Static assets
-│   ├── scripts/            # Utility/helper scripts
-│   ├── src/lib/            # Core backend/business logic
-│   └── Dockerfile          # Production app container build
-├── docs/                   # Project documentation
-│   ├── api-docs/           # API documentation
-│   ├── infra-docs/         # Docker, network, and deployment docs
-│   └── overview-docs/      # High-level project notes
-├── infra/                  # Deployment-related configuration
-│   └── docker/             # Docker Compose files for dev and production
-├── web/                    # Original static MVP version of the project
-└── README.md               # Root project overview
+
+### Restart
+
+```bash
+sudo systemctl restart mini-control-plane
 ```
 
 ---
 
-# Key System Features
+## 📁 Project Structure
 
-## Academic Tracking
-
-Users can manage:
-
-* semesters
-* courses
-* credits
-* grades
-
-The system automatically calculates:
-
-* GPA
-* CGPA
+```text
+src/
+├── services/        # system + StudexHub operations
+├── formatters/      # output formatting
+├── logging_setup.py
+├── confirmations.py
+├── config.py
+└── main.py
+```
 
 ---
 
-## Assignment Management
+## 🧪 Usage
 
-Assignments support:
+Example:
 
-* due date tracking
-* status tracking
-* course association
+```text
+/full_status
+```
 
-Assignments are also integrated with the notification system.
+Returns:
 
----
-
-## Class Schedule Management
-
-Users can define weekly class schedules.
-
-This enables the system to generate **class reminder notifications**.
+* Host system metrics
+* Service health
+* Container status
 
 ---
 
-## Notification System
+## 📊 Design Principles
 
-The application includes an internal notification system that supports:
-
-* assignment reminders
-* class reminders
-
-Notifications appear inside the application and may also be delivered via email.
+* **Separation of concerns** — app vs ops vs infra
+* **Minimal surface area** — only essential commands
+* **Operational safety first** — confirmations + logging
+* **CLI-first mindset** — reproducible and debuggable
 
 ---
 
-# Development Goals
+## 🚀 Future Improvements
 
-This project was intentionally designed to explore several important engineering topics:
-
-* full stack web development
-* API design
-* database schema design
-* authentication systems
-* containerization
-* reverse proxy configuration
-* homelab deployment
-
-It also acts as a **portfolio project demonstrating infrastructure and backend engineering skills**.
+* Alerting system (auto Telegram notifications)
+* Scheduled health checks (cron integration)
+* Metrics aggregation (Prometheus / Grafana)
+* Auto-healing workflows
 
 ---
 
-# Future Improvements
+## 🏁 Status
 
-Planned or potential improvements include:
-
-* multi‑user support
-* better analytics dashboard
-* mobile‑friendly UI improvements
-* background worker services
-* automated backups
-* monitoring and health checks
+Actively used in production for managing StudexHub infrastructure.
 
 ---
 
-# Educational Purpose
-
-This project is also part of a broader learning journey in:
-
-* networking
-* infrastructure engineering
-* cloud‑native systems
-
-The architecture intentionally mirrors real production patterns used in modern web services.
-
----
-
-# License
-
-This project is currently intended for educational and personal use.
