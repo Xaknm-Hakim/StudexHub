@@ -1,0 +1,37 @@
+==================================================
+StudexHub Notice Execution Log
+==================================================
+
+Timestamp: 2026-03-28T10:37:13.726Z
+Mode: broadcast
+Template: uptime.txt
+
+Summary
+-------
+Total users processed: 12
+Sent: 12
+No email: 0
+Failed: 0
+
+Sent Users
+----------
+- AFIQ MUQRISH BIN RAZALI <afiqmuqrish6@gmail.com>
+- Faiz <fahmilugi@gmail.com>
+- Hakim <hakimkiki542@gmail.com>
+- Mucip Uchiha <mustaffalmusyrif@gmail.com>
+- Muhammad_Azri07 <azriarshad1977@gmail.com>
+- Pajai <fazaimantrw@gmail.com>
+- Xaknm <hakimz.7117@gmail.com>
+- Zerpo <aizuddin1024@gmail.com>
+- aMMArCUTE <ammar.taib31@gmail.com>
+- amir imuet handsome ganteng <aw135nuz@gmail.com>
+- apam <afhamfauzy01@gmail.com>
+- kimi <hakimihussein1907@gmail.com>
+
+Users With No Email
+-------------------
+- None
+
+Failed Deliveries
+-----------------
+- None

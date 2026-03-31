@@ -31,17 +31,5 @@ services:
     volumes:
       - baruashub_postgres_data:/var/lib/postgresql/data
 
-  ops-bot:
-    build:
-      context: ../../ops-bot
-    container_name: studexhub-ops-bot
-    restart: unless-stopped
-    env_file:
-      - .env.docker
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/baruashub/StudexHub/storage/backups:/backups
-    network_mode: host
-
 volumes:
   baruashub_postgres_data:
