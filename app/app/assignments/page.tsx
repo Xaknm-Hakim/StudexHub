@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AssignmentTable from "@/components/AssignmentTable";
 import AssignmentForm from "@/components/AssignmentForm";
+import { AssignmentFormData } from "@/src/lib/types";
 
 
 type Assignment = {
@@ -45,10 +46,14 @@ export default function AssignmentsPage() {
   };
 
   useEffect(() => {
-    fetchAssignments();
+    const load = async () => {
+      await fetchAssignments();
+    };
+
+    load();
   }, []);
 
-  const addOrUpdateAssignment = async (payload: any) => {
+  const addOrUpdateAssignment = async (payload: AssignmentFormData) => {
     const method = editing ? "PATCH" : "POST";
     const url = editing
       ? `/api/assignments/${editing.id}`

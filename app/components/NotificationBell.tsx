@@ -22,7 +22,11 @@ export default function NotificationBell() {
   }
 
   useEffect(() => {
-    fetchNotifications()
+    const load = async () => {
+      await fetchNotifications();
+    };
+
+    load();
 
     const interval = setInterval(fetchNotifications, 30000)
 

@@ -44,7 +44,7 @@ export default function DashboardPage() {
         <div className="absolute top-4 right-4">
           <NotificationBell />
         </div>
-        <h1 className="text-3xl text-center font-bold tracking-tight">What's good{name ? `, ${name}` : ""}?</h1>
+        <h1 className="text-3xl text-center font-bold tracking-tight">{"What's good" + (name ? `, ${name}` : "") + "?"}</h1>
         <p className="text-center text-zinc-400 text-sm">wanna do something?</p>
 
       {/* this is the summary cards*/}

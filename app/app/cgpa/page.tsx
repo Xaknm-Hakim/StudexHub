@@ -33,7 +33,8 @@ export default function CgpaPage() {
   const [formData, setFormData] = useState({ name: "", code: "", credit: "", mark: "" });
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
 
-  useEffect(() => { fetchCourses(); }, [semesterSlot]);
+  useEffect(() => { 
+    fetchCourses(); }, [fetchCourses]);
 
 async function fetchCourses() {
   try {

@@ -1,41 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {AssignmentFormData, Priority } from "@/src/lib/types";
+import { useState } from "react";
+
+type Props = {
+  onAdd: (assignment: AssignmentFormData) => void;
+  editing: AssignmentFormData | null;
+  onCancel: () => void;
+};
 
 export default function AssignmentForm({
   onAdd,
   editing,
   onCancel,
-}: {
-  onAdd: (assignment: {
-    title: string;
-    dueDate: string;
-    priority?: "LOW" | "MEDIUM" | "HIGH";
-    notes?: string | null;
-  }) => void;
-  editing: any;
-  onCancel: () => void;
-}) {
-  const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [priority, setPriority] =
-    useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
-  const [notes, setNotes] = useState("");
+}: Props)
 
-  useEffect(() => {
-    if (editing) {
-      setTitle(editing.title ?? "");
-      setDueDate((editing.dueDate ?? "").split("T")[0]);
-      setPriority(editing.priority ?? "MEDIUM");
-      setNotes(editing.notes ?? "");
-    } else {
-      // Reset form when leaving edit mode
-      setTitle("");
-      setDueDate("");
-      setPriority("MEDIUM");
-      setNotes("");
-    }
-  }, [editing]);
+{
+const [title, setTitle] = useState(() => editing?.title ?? "");
+const [dueDate, setDueDate] = useState(() =>
+  editing?.dueDate?.split("T")[0] ?? ""
+);
+const [priority, setPriority] = useState<Priority>(
+  editing?.priority ?? "MEDIUM"
+);
+const [notes, setNotes] = useState(() => editing?.notes ?? "");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +77,7 @@ export default function AssignmentForm({
         <select
           value={priority}
           onChange={(e) =>
-            setPriority(e.target.value as "LOW" | "MEDIUM" | "HIGH")
+           setPriority(e.target.value as Priority)
           }
           className="p-2 rounded-lg bg-zinc-900"
           >

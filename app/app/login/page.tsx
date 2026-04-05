@@ -58,7 +58,7 @@ async function handleLogin() {
           Log In
         </button>
         <div className="text-center text-sm text-gray-400">
-            Don't have an account?{" "}
+            {"Don't have an account? "}
             <Link href="/signIn" className="text-white font-medium hover:underline">
               Sign in
             </Link>
