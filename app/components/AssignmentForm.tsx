@@ -1,11 +1,12 @@
 "use client";
 
-import {AssignmentFormData, Priority } from "@/src/lib/types";
+import { CreateAssignmentBody } from "@/src/lib/types/requests";
+import { Priority } from "@/src/lib/types";
 import { useState } from "react";
 
 type Props = {
-  onAdd: (assignment: AssignmentFormData) => void;
-  editing: AssignmentFormData | null;
+  onAdd: (assignment: CreateAssignmentBody) => void;
+  editing: (CreateAssignmentBody & { id?: string }) | null;
   onCancel: () => void;
 };
 
@@ -23,7 +24,9 @@ const [dueDate, setDueDate] = useState(() =>
 const [priority, setPriority] = useState<Priority>(
   editing?.priority ?? "MEDIUM"
 );
-const [notes, setNotes] = useState(() => editing?.notes ?? "");
+const [notes, setNotes] = useState<string | null>(
+  () => editing?.notes ?? null
+);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +40,7 @@ const [notes, setNotes] = useState(() => editing?.notes ?? "");
       title,
       dueDate: new Date(dueDate).toISOString(),
       priority,
-      notes,
+      ...(notes !== null && { notes }),
     });
   };
 
@@ -67,8 +70,8 @@ const [notes, setNotes] = useState(() => editing?.notes ?? "");
       />
 
       <textarea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
+        value={notes ?? ""}
+        onChange={(e) => setNotes(e.target.value || null)}
         placeholder="Notes (optional)"
         className="w-full bg-zinc-900 rounded-lg p-2"
       />

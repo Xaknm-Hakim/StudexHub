@@ -56,11 +56,6 @@ export default function ScheduleTable({ schedules, onDelete, onEdit }: Props) {
       const slot = timeToMinutes(slotTime);
       return slot >= start && slot < end;
     });
-  function getClass(dayValue: number, time:string){
-    return schedules.find(
-      (s) => s.dayOfWeek === dayValue && s.startTime.startsWith(time)
-    )
-  }
 
     return (
     <div className="overflow-x-auto">

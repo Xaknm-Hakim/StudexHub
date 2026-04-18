@@ -93,7 +93,7 @@ This project functions as a structured technical playground where we practice di
 
             <div className="flex gap-3 mt-4">
               <a 
-              href={"https://github.com/whateverItIs-26"}
+              href={"https://github.com/Xaknm-Hakim"}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-blue-600 px-3 py-1 rounded text-sm">

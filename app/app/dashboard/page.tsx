@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Summary, SemesterStat } from "@/src/lib/types/summary";
+import { Summary } from "@/src/lib/types/summary";
 import { useRouter } from "next/navigation";
 import NotificationBell from "@/components/NotificationBell";
 
