@@ -1,52 +1,283 @@
 
 # Types System Documentation — StudexHub
 
-## 🎯 Purpose
-
-Introduce a strict TypeScript typing system across StudexHub to eliminate unsafe patterns, enforce consistency, and ensure CI reliability.
-
-This system ensures:
-
-* Zero usage of `any`
-* Safe handling of external input
-* Consistent API contracts between backend and frontend
-* Production-grade code discipline
+> Generated: 2026-04-18
+> Last Updated: 2026-04-18
+> Source: app/src/lib/types
 
 ---
 
-## 🧠 Core Principle
+## Purpose
+
+Define a strict TypeScript typing system across StudexHub to reduce unsafe patterns, improve consistency, and support maintainable backend and frontend development.
+
+This system is intended to enforce:
+
+* zero `any`
+* safer handling of external input
+* clearer separation between API types and database types
+* shared contracts across backend and frontend
+* CI-friendly TypeScript discipline
+
+---
+
+## Core Principle
 
 **Never trust input. Always validate. Never use `any`.**
 
 ---
 
-## 📌 Why This Was Introduced
+## Why This Exists
 
-Before this change, the codebase had:
+Before this typing discipline, the codebase risked:
 
-* `any` used in request bodies and error handling
-* Unsafe `req.json()` usage
-* Inconsistent API structures
+* unsafe request body handling
+* inconsistent API structures
+* weak typing around errors and external input
+* lint failures from `no-explicit-any`
 
-This caused:
-
-* ESLint failures (`no-explicit-any`)
-* Runtime risks
-* Harder debugging and scaling
+This typing layer helps reduce runtime mistakes and keeps the codebase easier to audit and scale.
 
 ---
 
-## 🚫 Rule #1 — No `any`
+## Current Types Directory
 
-`any` is strictly forbidden.
+```text
+app/src/lib/types/
+├── api.ts
+├── common.ts
+├── db.ts
+├── enums.ts
+├── notification.ts
+├── requests.ts
+└── summary.ts
+```
 
-### ❌ Wrong
+---
+
+## File Responsibilities
+
+### `common.ts`
+
+Shared low-level utility helpers used across the codebase.
+
+Current responsibility:
+
+* safe error message extraction through `getErrorMessage(error: unknown): string`
+
+Example:
+
+```ts
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Unknown error";
+}
+```
+
+---
+
+### `requests.ts`
+
+Defines request body contracts for API operations.
+
+Current coverage includes:
+
+* assignments
+* semesters
+* courses
+* class schedules
+* notifications
+* notification delivery logs
+
+Examples:
+
+* `CreateAssignmentBody`
+* `UpdateAssignmentBody`
+* `CreateCourseBody`
+* `UpdateCourseBody`
+* `CreateClassScheduleBody`
+
+Use this file for:
+
+* expected request payload structure
+* frontend-to-backend body contracts
+* route-level payload documentation support
+
+---
+
+### `api.ts`
+
+Defines API-facing entity types and generic response contracts.
+
+Current coverage includes:
+
+* `User`
+* `Semester`
+* `Course`
+* `Assignment`
+* `InviteCode`
+* `ClassSchedule`
+* `Notification`
+* `NotificationDeliveryLog`
+
+It also defines generic response wrappers:
+
+```ts
+export interface ApiSuccess<T> {
+  success: true;
+  data: T;
+  message?: string;
+}
+
+export interface ApiError {
+  success: false;
+  error: string;
+  details?: unknown;
+}
+
+export type ApiResponse<T> = ApiSuccess<T> | ApiError;
+```
+
+And typed aliases such as:
+
+* `AssignmentListResponse`
+* `AssignmentSingleResponse`
+* `CourseListResponse`
+* `NotificationSingleResponse`
+
+### Important Note
+
+⚠️ The current route handlers do **not yet consistently follow** the `ApiResponse<T>` contract.
+This means `api.ts` currently represents the **intended response standard**, not the fully enforced real-world route behavior.
+
+---
+
+### `enums.ts`
+
+Defines shared literal union types used across the app.
+
+Current enums include:
+
+* `AssignmentStatus`
+* `AssignmentPriority`
+* `NotificationType`
+* `NotificationChannel`
+
+This file acts as the shared enum source for request types, API types, and DB types.
+
+---
+
+### `notification.ts`
+
+Defines notification-specific type(s).
+
+Current responsibility:
+
+* `Notification`
+
+### Important Note
+
+⚠️ `Notification` is currently also defined in `api.ts`.
+That means this type is duplicated across the type system and should be reviewed later to avoid drift.
+
+---
+
+### `summary.ts`
+
+Defines reporting and aggregate summary types.
+
+Current coverage includes:
+
+* `SemesterStat`
+* `Summary`
+
+This file is used for computed reporting-style responses such as CGPA and semester statistics.
+
+---
+
+### `db.ts`
+
+Defines database-facing record shapes.
+
+This file mirrors stored data more closely than `api.ts`, especially for timestamps and date fields.
+
+Current pattern:
+
+* database record types use `Date`
+* API-facing types use `string`
+
+Examples:
+
+* `UserRecord`
+* `CourseRecord`
+* `AssignmentRecord`
+* `NotificationRecord`
+
+This separation is useful because:
+
+* DB layer reflects actual persisted value shapes
+* API layer reflects serialized transport shapes
+
+---
+
+## Type Layer Boundaries
+
+### API Layer (`api.ts`)
+
+Use for:
+
+* response contracts
+* frontend/backend shared transport types
+* serialized values such as ISO date strings
+
+### DB Layer (`db.ts`)
+
+Use for:
+
+* internal persistence-facing shapes
+* Prisma-like record modeling
+* native `Date` fields before serialization
+
+### Request Layer (`requests.ts`)
+
+Use for:
+
+* request body contracts
+* mutation payload definitions
+* create/update input shapes
+
+### Enum Layer (`enums.ts`)
+
+Use for:
+
+* shared literal value sets
+* status/priority/channel/type consistency
+
+### Reporting Layer (`summary.ts`)
+
+Use for:
+
+* computed response structures
+* aggregate/statistical outputs
+
+---
+
+## Backend Rules
+
+### Rule 1 — No `any`
+
+`any` is forbidden.
+
+#### Wrong
 
 ```ts
 catch (e: any)
 ```
 
-### ✅ Correct
+#### Correct
 
 ```ts
 catch (error: unknown)
@@ -54,61 +285,48 @@ catch (error: unknown)
 
 ---
 
-## 🔐 Rule #2 — Treat All Input as Unsafe
+### Rule 2 — Treat external input as unsafe
 
-Everything from:
+Values from:
 
 * `req.json()`
 * query params
 * headers
+* cookies
 
-must be treated as `unknown`.
+must not be blindly trusted.
 
-### ❌ Wrong
+Preferred approach:
 
-```ts
-const body = await req.json();
-```
-
-### ✅ Correct
-
-```ts
-type RequestBody = {
-  name?: unknown;
-  credit?: unknown;
-};
-
-const body = (await req.json().catch(() => null)) as RequestBody | null;
-```
+* parse safely
+* narrow explicitly
+* validate before use
 
 ---
 
-## 🔍 Rule #3 — Always Narrow Types
+### Rule 3 — Narrow before access
 
-Never directly access unknown values.
+Do not access unknown values directly.
 
-### ❌ Wrong
+#### Wrong
 
 ```ts
 body.name.trim()
 ```
 
-### ✅ Correct
+#### Better
 
 ```ts
 const name = String(body.name ?? "").trim();
-const credit = Number(body.credit);
 ```
 
 ---
 
-## ⚠️ Rule #4 — Safe Error Handling
+### Rule 4 — Use shared error helpers
 
-Always use `unknown` and a helper function.
+Safe error handling should go through `getErrorMessage()` when possible.
 
 ```ts
-import { getErrorMessage } from "@/src/lib/types/common";
-
 catch (error: unknown) {
   const message = getErrorMessage(error);
 }
@@ -116,197 +334,126 @@ catch (error: unknown) {
 
 ---
 
-## 📁 Directory Structure
+## Frontend Rules
 
-```
-app/src/lib/types/
-├── common.ts
-├── requests.ts
-```
+Frontend code should:
 
----
+* reuse shared request/API types where possible
+* avoid `any` in component state and API calls
+* align with backend request body expectations
+* not assume all routes already follow `ApiResponse<T>` unless that route has been normalized
 
-## 🧩 common.ts
+### Important Note
 
-Contains shared helpers.
-
-### getErrorMessage
-
-```ts
-export function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  return String(error);
-}
-```
+⚠️ Because current backend responses are still inconsistent, frontend usage of `api.ts` response wrappers must be done carefully until the route layer is standardized.
 
 ---
 
-## 📦 requests.ts
+## Current Strengths of the Type System
 
-Defines API request contracts.
-
-### Example
-
-```ts
-export interface CreateCourseBody {
-  semesterId?: string;
-  semesterSlot?: number | string;
-  code?: string | null;
-  name: string;
-  credit: number;
-  mark?: number | string | null;
-}
-```
+* Clear separation between DB and API timestamp shapes
+* Shared enum definitions
+* Request body contracts already exist for multiple route groups
+* Error helper established
+* Summary/reporting types separated cleanly
 
 ---
 
-## 🏗 Backend Pattern (Standard)
+## Current Weaknesses / Refinement Targets
 
-All API routes must follow this structure:
+### 1. Response contract is not fully enforced
 
-### 1. Define Local Type
+`api.ts` defines a clean generic response model, but actual route handlers still return mixed shapes.
 
-```ts
-type RequestBody = {
-  name?: unknown;
-};
-```
+### 2. Duplicate `Notification` type
 
-### 2. Parse Safely
+`Notification` exists in both:
 
-```ts
-const body = (await req.json().catch(() => null)) as RequestBody | null;
-```
+* `api.ts`
+* `notification.ts`
 
-### 3. Validate
+This should be reviewed and likely unified later.
 
-* Required fields
-* Data format
-* Value range
+### 3. Request types are defined, but route handlers still often do manual parsing
 
-### 4. Convert
+The type system exists, but enforcement is still partially cultural rather than fully structural.
 
-```ts
-const name = String(body.name ?? "").trim();
-```
+### 4. No dedicated response type modules beyond `api.ts`
 
-### 5. Business Logic
-
-* Prisma queries
-* Ownership checks
-* Calculations
-
-### 6. Handle Errors
-
-```ts
-catch (error: unknown) {
-  return NextResponse.json({ error: getErrorMessage(error) });
-}
-```
+You currently have a response model direction, but not every route family has strongly enforced, route-specific response contracts yet.
 
 ---
 
-## 🧠 Key Design Decisions
+## CI Impact
 
-### Use `unknown` Instead of `any`
+This system supports:
 
-* Forces validation
-* Prevents unsafe access
-* Required by lint
+* ESLint `no-explicit-any`
+* TypeScript strictness
+* cleaner PR review
+* safer refactoring
 
----
+If developers bypass the system with:
 
-### Local Types Per Route
+* `any`
+* `as any`
+* unsafe direct input access
 
-* More flexible
-* Avoids over-coupling
-* Easier validation
-
----
-
-### Flexible Input Handling
-
-Supports:
-
-* `number | string`
-* nullable values
+the codebase becomes harder to trust and easier to break.
 
 ---
 
-### Centralized Error Handling
+## Ownership
 
-All errors go through:
-
-* `getErrorMessage()`
-
----
-
-## ⚙️ CI Impact
-
-This system is enforced by:
-
-* ESLint (`no-explicit-any`)
-* TypeScript strict mode
-* GitHub Actions CI
-
-Without it:
-
-* CI fails
-* PRs are blocked (if protection enabled)
-
----
-
-## 👥 Ownership
-
-### Backend / Infra (You)
+### Backend / Infra
 
 Responsible for:
 
 * `app/src/lib/types/*`
-* API contracts
-* Ensuring zero `any`
-* Schema alignment
+* request and API contract discipline
+* maintaining separation between transport and DB types
+* preventing unsafe escape hatches
 
----
-
-### Frontend (Din)
+### Frontend
 
 Responsible for:
 
-* Using API contracts
-* Avoiding `any` in `.tsx`
-* Matching backend expectations
+* consuming request/API contracts correctly
+* avoiding `any` in components and fetch handlers
+* aligning UI state with backend payload expectations
 
 ---
 
-## ❌ Common Mistakes
+## Common Mistakes to Avoid
 
-* Using `any` anywhere
-* Trusting `req.json()` directly
-* Accessing unknown values without conversion
-* Using `as any` to bypass typing
-
----
-
-## 🔮 Future Improvements
-
-* Add response types (`responses.ts`)
-* Introduce validation layer (e.g. Zod)
-* Share types frontend ↔ backend
-* Add OpenAPI/Swagger
+* using `any`
+* using `as any`
+* trusting `req.json()` directly
+* duplicating types without a clear reason
+* assuming current API responses always match `ApiResponse<T>`
+* mixing DB `Date` types into frontend/API layers
 
 ---
 
-## 📌 Final Rule
+## Future Improvements
 
-> If you feel like using `any`, you're doing it wrong.
+* enforce `ApiResponse<T>` across all route handlers
+* add dedicated response contracts if needed
+* introduce schema validation layer such as Zod
+* reduce duplicated type definitions
+* generate docs/contracts from schemas later
+* add stronger shared frontend/backend transport typing
+
+---
+
+## Final Rule
+
+> If you feel like using `any`, you are probably skipping a design decision.
 
 Use:
 
 * `unknown`
-* Proper types
-* Or define a new interface
-
----
-
-End of document.
+* shared request types
+* shared API types
+* explicit narrowing
+* proper interfaces
