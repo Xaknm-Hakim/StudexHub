@@ -132,7 +132,7 @@ export async function runAssignmentReminders() {
         continue;
       }
 
-      const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+      const appUrl = process.env.APP_URL ?? "https://www.studexhub.com";
 
       const email = buildAssignmentReminderEmail({
         studentName: assignment.user.name,

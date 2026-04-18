@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function MainPage() {
@@ -11,16 +10,16 @@ export default function MainPage() {
             <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl space-y-4">        
 
                     <h1 className="text-2xl text-center font-bold">Yo, welcome to StudexHub</h1>
-                    <p className="text-sm text-center text-grey-400"> formerly known as BaruasHub (well it's still is lmao)</p>
+                    <p className="text-sm text-center text-grey-400"> {"formerly known as BaruasHub"+ "(well it's still is lmao)"}</p>
                     
                     <div className="text-center text-sm text-gray-400">
-                      what you wanna do twin?{" "}
+                      {"what you wanna do twin? "}
                       <Link href="/signIn" className="text-white font-medium hover:underline">
-                        Sign in 
+                       {" Sign in"}
                       </Link>
-                       -or- 
+                        {" or "}
                       <Link href="/login" className="text-white font-medium hover:underline">
-                        Log in
+                        {"Log in"}
                       </Link>
                     </div>
             </div>

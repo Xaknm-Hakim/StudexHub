@@ -35,7 +35,11 @@ export default function SchedulePage() {
   }
 
   useEffect(() => {
-    fetchSchedules();
+    const load = async () => {
+      await fetchSchedules();
+    };
+
+    load();
   }, []);
 
   return (

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AssignmentTable from "@/components/AssignmentTable";
 import AssignmentForm from "@/components/AssignmentForm";
+import { CreateAssignmentBody } from "@/src/lib/types/requests";
 
 
 type Assignment = {
@@ -28,7 +29,9 @@ export default function AssignmentsPage() {
   const router = useRouter();
 
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [editing, setEditing] = useState<Assignment | null>(null);
+  const [editing, setEditing] = useState<
+  (CreateAssignmentBody & { id?: string }) | null
+  >(null);
 
   const fetchAssignments = async () => {
     const res = await fetch("/api/assignments?sort=dueDate&order=asc", {
@@ -45,10 +48,14 @@ export default function AssignmentsPage() {
   };
 
   useEffect(() => {
-    fetchAssignments();
+    const load = async () => {
+      await fetchAssignments();
+    };
+
+    load();
   }, []);
 
-  const addOrUpdateAssignment = async (payload: any) => {
+  const addOrUpdateAssignment = async (payload: CreateAssignmentBody) => {
     const method = editing ? "PATCH" : "POST";
     const url = editing
       ? `/api/assignments/${editing.id}`
@@ -106,7 +113,20 @@ export default function AssignmentsPage() {
                 <AssignmentTable
                   assignments={assignments}
                   onDelete={deleteAssignment}
-                  onEdit={setEditing}
+                  onEdit={(a) => {
+                    const payload: CreateAssignmentBody = {
+                      title: a.title,
+                      dueDate: a.dueDate,
+                      priority: a.priority,
+                    };
+
+                    if (a.notes !== null) {
+                      payload.notes = a.notes;
+                    }
+
+                    setEditing(payload);
+                    
+                    }}
                 />
             </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type ClassSchedule = {
   id: string
@@ -18,22 +18,20 @@ type Props = {
 };
 
 export default function ScheduleForm({ onSuccess, editingSchedule, clearEdit }: Props) {
-  useEffect(() => {
-    if (editingSchedule) {
-      setTitle(editingSchedule.title ?? "")
-      setDayOfWeek(editingSchedule.dayOfWeek ?? 1)
-      setStartTime(editingSchedule.startTime ?? "")
-      setEndTime(editingSchedule.endTime ?? "")
-      setLocation(editingSchedule.location ?? "")
-    }
-  }, [editingSchedule]);
-
-  const [title, setTitle] = useState("");
-  const [dayOfWeek, setDayOfWeek] = useState(1);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [location, setLocation] = useState("");
-
+  
+  const [title, setTitle] = useState(() => editingSchedule?.title ?? "");
+  const [dayOfWeek, setDayOfWeek] = useState (
+    () => editingSchedule?.dayOfWeek ?? 1
+  );
+  const [startTime, setStartTime] = useState(
+    () => editingSchedule?.startTime ?? ""
+  );
+  const [endTime, setEndTime] = useState(
+    () => editingSchedule?.endTime ?? ""
+  );
+  const [location, setLocation] = useState(
+    () => editingSchedule?.location ?? ""
+  );
 
 async function handleSubmit(e: React.FormEvent) {
   e.preventDefault()

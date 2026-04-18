@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, } from "react";
 import { useRouter } from "next/navigation";
 
 type Course = {
@@ -33,8 +33,42 @@ export default function CgpaPage() {
   const [formData, setFormData] = useState({ name: "", code: "", credit: "", mark: "" });
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
 
-  useEffect(() => { fetchCourses(); }, [semesterSlot]);
+  useEffect (() => {
+    const fetchCourses = async () => {
+      try {
+    const res = await fetch("/api/courses");
+    if (!res.ok) throw new Error("Failed to fetch courses");
 
+    // Type-safe response
+    interface CoursesResponse {
+      courses: Course[];
+    }
+
+    const data: CoursesResponse = await res.json();
+
+    // Filter courses by selected semesterSlot safely
+    const filtered = data.courses.filter(
+      (c: Course) => c.semester?.slot === semesterSlot
+    );
+    setCourses(filtered);
+
+    // Fetch GPA if at least one course exists
+    if (filtered.length > 0 && filtered[0].semester?.id) {
+      await fetchGpa(filtered[0].semester.id);
+    } else {
+      setGpa(null);
+    }
+  } catch (err) {
+    console.error("Error fetching courses:", err);
+    alert("Failed to fetch courses. Check console for details.");
+    setCourses([]);
+    setGpa(null);
+  }
+};
+
+fetchCourses();
+  }, [semesterSlot]);
+  
 async function fetchCourses() {
   try {
     const res = await fetch("/api/courses");
