@@ -22,29 +22,40 @@ export default function NotificationBell() {
   }
 
   useEffect(() => {
-    const load = async () => {
-      await fetchNotifications();
+    let isMounted = true;
+
+    const safeFetch = async () => {
+      const res = await fetch("/api/notifications");
+      const data = await res.json();
+
+      if (isMounted) {
+        setNotifications(data.notifications);
+        setUnreadCount(data.unreadCount);
+      }
     };
 
-    load();
+    safeFetch();
 
-    const interval = setInterval(fetchNotifications, 30000)
+    const interval = setInterval(safeFetch, 30000);
 
     function handleClickOutside(event: MouseEvent) {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setOpen(false)
+        setOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
+      isMounted = false;
       clearInterval(interval)
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+
+
+  }, []);
 
   async function deleteNotification(id: string) {
     await fetch(`/api/notifications/${id}`, {

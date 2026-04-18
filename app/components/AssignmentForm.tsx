@@ -1,7 +1,7 @@
 "use client";
 
 import { CreateAssignmentBody } from "@/src/lib/types/requests";
-import { Priority } from "@/src/lib/types";
+import { AssignmentPriority } from "@/src/lib/types/enums";
 import { useState } from "react";
 
 type Props = {
@@ -21,7 +21,7 @@ const [title, setTitle] = useState(() => editing?.title ?? "");
 const [dueDate, setDueDate] = useState(() =>
   editing?.dueDate?.split("T")[0] ?? ""
 );
-const [priority, setPriority] = useState<Priority>(
+const [priority, setPriority] = useState<AssignmentPriority>(
   editing?.priority ?? "MEDIUM"
 );
 const [notes, setNotes] = useState<string | null>(
@@ -80,7 +80,7 @@ const [notes, setNotes] = useState<string | null>(
         <select
           value={priority}
           onChange={(e) =>
-           setPriority(e.target.value as Priority)
+           setPriority(e.target.value as AssignmentPriority)
           }
           className="p-2 rounded-lg bg-zinc-900"
           >
