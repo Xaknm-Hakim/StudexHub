@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 type Course = {
@@ -33,8 +33,19 @@ export default function CgpaPage() {
   const [formData, setFormData] = useState({ name: "", code: "", credit: "", mark: "" });
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
 
-  useEffect (() => {
-    const fetchCourses = async () => {
+  
+    const fetchGpa = useCallback (async (semesterId: string) => {
+    try {
+      const res = await fetch(`/api/semesters/${semesterId}/gpa`);
+      if (!res.ok) return setGpa(null);
+      const data = await res.json();
+      setGpa(data.gpa);
+    } catch {
+      setGpa(null);
+    }
+  }, []);
+  
+    const fetchCourses = useCallback(async () => {
       try {
     const res = await fetch("/api/courses");
     if (!res.ok) throw new Error("Failed to fetch courses");
@@ -50,6 +61,7 @@ export default function CgpaPage() {
     const filtered = data.courses.filter(
       (c: Course) => c.semester?.slot === semesterSlot
     );
+    
     setCourses(filtered);
 
     // Fetch GPA if at least one course exists
@@ -64,53 +76,13 @@ export default function CgpaPage() {
     setCourses([]);
     setGpa(null);
   }
-};
 
-fetchCourses();
-  }, [semesterSlot]);
-  
-async function fetchCourses() {
-  try {
-    const res = await fetch("/api/courses");
-    if (!res.ok) throw new Error("Failed to fetch courses");
+  }, [semesterSlot, fetchGpa]);
 
-    // Type-safe response
-    interface CoursesResponse {
-      courses: Course[];
-    }
-
-    const data: CoursesResponse = await res.json();
-
-    // Filter courses by selected semesterSlot safely
-    const filtered = data.courses.filter(
-      (c: Course) => c.semester?.slot === semesterSlot
-    );
-    setCourses(filtered);
-
-    // Fetch GPA if at least one course exists
-    if (filtered.length > 0 && filtered[0].semester?.id) {
-      await fetchGpa(filtered[0].semester.id);
-    } else {
-      setGpa(null);
-    }
-  } catch (err) {
-    console.error("Error fetching courses:", err);
-    alert("Failed to fetch courses. Check console for details.");
-    setCourses([]);
-    setGpa(null);
-  }
-}
-
-  async function fetchGpa(semesterId: string) {
-    try {
-      const res = await fetch(`/api/semesters/${semesterId}/gpa`);
-      if (!res.ok) return setGpa(null);
-      const data = await res.json();
-      setGpa(data.gpa);
-    } catch {
-      setGpa(null);
-    }
-  }
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses])
+  //end of useEffect
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
