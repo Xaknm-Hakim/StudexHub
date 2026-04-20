@@ -1,38 +1,90 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { ApiResponse, SemesterGpaResponse } from "@/src/lib/types/api";
+import { getErrorMessage } from "@/src/lib/types/common";
 
-export async function GET(
-  _req: Request,
-  ctx: { params: Promise<{ semesterId: string }> }
-) {
-  const userId = await requireUserId();
-  const { semesterId } = await ctx.params;
+type RouteContext = {
+  params: Promise<{ semesterId: string }>;
+};
 
-  const semester = await prisma.semester.findFirst({
-    where: { id: semesterId, userId },
-    select: {
-      id: true,
-      name: true,
-      courses: { select: { credit: true, gradePoint: true, mark: true } },
-    },
-  });
+export async function GET(_req: Request, ctx: RouteContext) {
+  try {
+    const userId = await requireUserId();
+    const { semesterId } = await ctx.params;
 
-  if (!semester) return NextResponse.json({ error: "Semester not found" }, { status: 404 });
+    const semester = await prisma.semester.findFirst({
+      where: { id: semesterId, userId },
+      select: {
+        id: true,
+        name: true,
+        courses: {
+          select: {
+            credit: true,
+            gradePoint: true,
+            mark: true,
+          },
+        },
+      },
+    });
 
-  const valid = semester.courses.filter((c) => c.gradePoint !== null);
+    if (!semester) {
+      return NextResponse.json<ApiResponse<never>>(
+        {
+          ok: false,
+          error: "Semester not found",
+        },
+        { status: 404 }
+      );
+    }
 
-  const totalCredits = valid.reduce((s, c) => s + c.credit, 0);
-  const totalQuality = valid.reduce((s, c) => s + c.credit * (c.gradePoint as number), 0);
+    const valid = semester.courses.filter((c) => c.gradePoint !== null);
 
-  const gpa = totalCredits === 0 ? null : totalQuality / totalCredits;
+    const totalCredits = valid.reduce((sum, c) => sum + c.credit, 0);
+    const totalQuality = valid.reduce(
+      (sum, c) => sum + c.credit * (c.gradePoint as number),
+      0
+    );
 
-  return NextResponse.json({
-    semesterId: semester.id,
-    semesterName: semester.name,
-    gpa,
-    totalCredits,
-    countedCourses: valid.length,
-    totalCourses: semester.courses.length,
-  });
+    const gpa = totalCredits === 0 ? null : totalQuality / totalCredits;
+
+    const data: SemesterGpaResponse = {
+      semesterId: semester.id,
+      semesterName: semester.name,
+      gpa,
+      totalCredits,
+      countedCourses: valid.length,
+      totalCourses: semester.courses.length,
+    };
+
+    return NextResponse.json<ApiResponse<SemesterGpaResponse>>(
+      {
+        ok: true,
+        data,
+      },
+      { status: 200 }
+    );
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+
+    if (message === "UNAUTHORIZED") {
+      return NextResponse.json<ApiResponse<never>>(
+        {
+          ok: false,
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    console.error(error);
+
+    return NextResponse.json<ApiResponse<never>>(
+      {
+        ok: false,
+        error: "Failed to fetch semester GPA",
+      },
+      { status: 500 }
+    );
+  }
 }

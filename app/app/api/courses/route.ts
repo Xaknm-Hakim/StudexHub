@@ -3,8 +3,48 @@ import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
 import { markToGradePoint } from "@/src/lib/grading/uthm";
 import { getSemesterName, isValidSemesterSlot } from "@/src/lib/semester";
+import type { ApiResponse, CourseWithSemester } from "@/src/lib/types/api";
 import type { CreateCourseBody } from "@/src/lib/types/requests";
 import { getErrorMessage } from "@/src/lib/types/common";
+
+type CreateCourseRequest = CreateCourseBody & {
+  semesterSlot?: number | string;
+  mark?: number | string | null;
+};
+
+function toCourseWithSemesterResponse(course: {
+  id: string;
+  semesterId: string;
+  code: string | null;
+  name: string;
+  credit: number;
+  mark: number | null;
+  gradePoint: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+  semester: {
+    id: string;
+    slot: number;
+    name: string;
+  };
+}): CourseWithSemester {
+  return {
+    id: course.id,
+    semesterId: course.semesterId,
+    code: course.code,
+    name: course.name,
+    credit: course.credit,
+    mark: course.mark,
+    gradePoint: course.gradePoint,
+    createdAt: course.createdAt.toISOString(),
+    updatedAt: course.updatedAt.toISOString(),
+    semester: {
+      id: course.semester.id,
+      slot: course.semester.slot,
+      name: course.semester.name,
+    },
+  };
+}
 
 export async function GET() {
   try {
@@ -30,17 +70,24 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: courses,
-    });
+    const responseCourses: CourseWithSemester[] = courses.map((course) =>
+      toCourseWithSemesterResponse(course)
+    );
+
+    return NextResponse.json<ApiResponse<CourseWithSemester[]>>(
+      {
+        ok: true,
+        data: responseCourses,
+      },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     const message = getErrorMessage(error);
 
     if (message === "UNAUTHORIZED") {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Unauthorized",
         },
         { status: 401 }
@@ -49,9 +96,9 @@ export async function GET() {
 
     console.error(error);
 
-    return NextResponse.json(
+    return NextResponse.json<ApiResponse<never>>(
       {
-        success: false,
+        ok: false,
         error: "Failed to fetch courses",
       },
       { status: 500 }
@@ -63,14 +110,14 @@ export async function POST(req: Request) {
   try {
     const userId = await requireUserId();
 
-    const body = (await req.json().catch(() => null)) as
-      | (CreateCourseBody & { semesterSlot?: number | string; mark?: number | string | null })
-      | null;
+    const body: CreateCourseRequest | null = await req
+      .json()
+      .catch(() => null);
 
     if (!body) {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Invalid JSON",
         },
         { status: 400 }
@@ -84,9 +131,9 @@ export async function POST(req: Request) {
     const semesterSlot = Number(body.semesterSlot);
 
     if (!name) {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "name is required",
         },
         { status: 400 }
@@ -94,9 +141,9 @@ export async function POST(req: Request) {
     }
 
     if (!Number.isInteger(credit) || credit <= 0) {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "credit must be a positive integer",
         },
         { status: 400 }
@@ -104,9 +151,9 @@ export async function POST(req: Request) {
     }
 
     if (!isValidSemesterSlot(semesterSlot)) {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "semesterSlot must be an integer from 0 to 5",
         },
         { status: 400 }
@@ -120,9 +167,9 @@ export async function POST(req: Request) {
       const parsedMark = Number(markRaw);
 
       if (!Number.isFinite(parsedMark) || parsedMark < 0 || parsedMark > 100) {
-        return NextResponse.json(
+        return NextResponse.json<ApiResponse<never>>(
           {
-            success: false,
+            ok: false,
             error: "mark must be between 0 and 100",
           },
           { status: 400 }
@@ -134,9 +181,9 @@ export async function POST(req: Request) {
         mark = Math.floor(parsedMark);
         gradePoint = result.point;
       } catch (error: unknown) {
-        return NextResponse.json(
+        return NextResponse.json<ApiResponse<never>>(
           {
-            success: false,
+            ok: false,
             error: getErrorMessage(error) || "Invalid mark",
           },
           { status: 400 }
@@ -181,10 +228,13 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(
+    const responseCourse: CourseWithSemester =
+      toCourseWithSemesterResponse(course);
+
+    return NextResponse.json<ApiResponse<CourseWithSemester>>(
       {
-        success: true,
-        data: course,
+        ok: true,
+        data: responseCourse,
       },
       { status: 201 }
     );
@@ -192,9 +242,9 @@ export async function POST(req: Request) {
     const message = getErrorMessage(error);
 
     if (message === "UNAUTHORIZED") {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Unauthorized",
         },
         { status: 401 }
@@ -203,9 +253,9 @@ export async function POST(req: Request) {
 
     console.error(error);
 
-    return NextResponse.json(
+    return NextResponse.json<ApiResponse<never>>(
       {
-        success: false,
+        ok: false,
         error: "Failed to create course",
       },
       { status: 500 }

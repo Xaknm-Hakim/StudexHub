@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AssignmentPriority, AssignmentStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { ApiResponse, AssignmentWithMeta } from "@/src/lib/types/api";
 import type { CreateAssignmentBody } from "@/src/lib/types/requests";
 import { getErrorMessage } from "@/src/lib/types/common";
 
@@ -9,7 +10,9 @@ function computeDaysLeft(dueDate: Date) {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const due = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-  const daysLeft = Math.round((due.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const daysLeft = Math.round(
+    (due.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+  );
   const dueStatus =
     daysLeft < 0 ? "OVERDUE" : daysLeft === 0 ? "DUE_TODAY" : "DUE_IN_X_DAYS";
 
@@ -30,6 +33,52 @@ function isAssignmentStatus(value: unknown): value is AssignmentStatus {
   );
 }
 
+function toAssignmentWithMetaResponse(assignment: {
+  id: string;
+  userId: string;
+  title: string;
+  dueDate: Date;
+  status: AssignmentStatus;
+  priority: AssignmentPriority;
+  notes: string | null;
+  completedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  courseId: string | null;
+  course: {
+    id: string;
+    name: string;
+    code: string | null;
+    credit: number;
+  } | null;
+}): AssignmentWithMeta {
+  const { daysLeft, dueStatus } = computeDaysLeft(assignment.dueDate);
+
+  return {
+    id: assignment.id,
+    userId: assignment.userId,
+    courseId: assignment.courseId,
+    title: assignment.title,
+    dueDate: assignment.dueDate.toISOString(),
+    status: assignment.status,
+    priority: assignment.priority,
+    notes: assignment.notes,
+    completedAt: assignment.completedAt?.toISOString() ?? null,
+    createdAt: assignment.createdAt.toISOString(),
+    updatedAt: assignment.updatedAt.toISOString(),
+    daysLeft,
+    dueStatus,
+    course: assignment.course
+      ? {
+          id: assignment.course.id,
+          name: assignment.course.name,
+          code: assignment.course.code,
+          credit: assignment.course.credit,
+        }
+      : null,
+  };
+}
+
 // GET /api/assignments?status=PENDING|DONE&courseId=...&q=...&sort=dueDate&order=asc
 export async function GET(req: NextRequest) {
   try {
@@ -41,15 +90,17 @@ export async function GET(req: NextRequest) {
     const q = url.searchParams.get("q")?.trim();
     const sortParam = url.searchParams.get("sort") ?? "dueDate";
     const order: Prisma.SortOrder =
-      (url.searchParams.get("order") ?? "asc").toLowerCase() === "desc" ? "desc" : "asc";
+      (url.searchParams.get("order") ?? "asc").toLowerCase() === "desc"
+        ? "desc"
+        : "asc";
 
     const where: Prisma.AssignmentWhereInput = { userId };
 
     if (statusParam) {
       if (!isAssignmentStatus(statusParam)) {
-        return NextResponse.json(
+        return NextResponse.json<ApiResponse<never>>(
           {
-            success: false,
+            ok: false,
             error: "Invalid status",
           },
           { status: 400 }
@@ -83,6 +134,7 @@ export async function GET(req: NextRequest) {
       orderBy: { [sortField]: order },
       select: {
         id: true,
+        userId: true,
         title: true,
         dueDate: true,
         status: true,
@@ -103,22 +155,24 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const data = rows.map((assignment) => ({
-      ...assignment,
-      ...computeDaysLeft(assignment.dueDate),
-    }));
+    const data: AssignmentWithMeta[] = rows.map((assignment) =>
+      toAssignmentWithMetaResponse(assignment)
+    );
 
-    return NextResponse.json({
-      success: true,
-      data,
-    });
+    return NextResponse.json<ApiResponse<AssignmentWithMeta[]>>(
+      {
+        ok: true,
+        data,
+      },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     const message = getErrorMessage(error);
 
     if (message === "UNAUTHORIZED") {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Unauthorized",
         },
         { status: 401 }
@@ -127,9 +181,9 @@ export async function GET(req: NextRequest) {
 
     console.error(error);
 
-    return NextResponse.json(
+    return NextResponse.json<ApiResponse<never>>(
       {
-        success: false,
+        ok: false,
         error: "Failed to fetch assignments",
       },
       { status: 500 }
@@ -140,7 +194,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const userId = await requireUserId();
-    const body = (await req.json()) as CreateAssignmentBody;
+    const body: CreateAssignmentBody = await req.json();
 
     const title = body.title?.trim();
     const dueDateRaw = body.dueDate;
@@ -156,9 +210,9 @@ export async function POST(req: NextRequest) {
           : AssignmentPriority.MEDIUM;
 
     if (!title || !dueDateRaw) {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "title and dueDate are required",
         },
         { status: 400 }
@@ -168,9 +222,9 @@ export async function POST(req: NextRequest) {
     const dueDate = new Date(dueDateRaw);
 
     if (Number.isNaN(dueDate.getTime())) {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Invalid dueDate",
         },
         { status: 400 }
@@ -187,9 +241,9 @@ export async function POST(req: NextRequest) {
       });
 
       if (!owned) {
-        return NextResponse.json(
+        return NextResponse.json<ApiResponse<never>>(
           {
-            success: false,
+            ok: false,
             error: "Invalid courseId",
           },
           { status: 400 }
@@ -209,6 +263,7 @@ export async function POST(req: NextRequest) {
       },
       select: {
         id: true,
+        userId: true,
         title: true,
         dueDate: true,
         status: true,
@@ -229,13 +284,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(
+    const data: AssignmentWithMeta = toAssignmentWithMetaResponse(created);
+
+    return NextResponse.json<ApiResponse<AssignmentWithMeta>>(
       {
-        success: true,
-        data: {
-          ...created,
-          ...computeDaysLeft(created.dueDate),
-        },
+        ok: true,
+        data,
       },
       { status: 201 }
     );
@@ -243,9 +297,9 @@ export async function POST(req: NextRequest) {
     const message = getErrorMessage(error);
 
     if (message === "UNAUTHORIZED") {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Unauthorized",
         },
         { status: 401 }
@@ -254,9 +308,9 @@ export async function POST(req: NextRequest) {
 
     console.error(error);
 
-    return NextResponse.json(
+    return NextResponse.json<ApiResponse<never>>(
       {
-        success: false,
+        ok: false,
         error: "Failed to create assignment",
       },
       { status: 500 }

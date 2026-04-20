@@ -1,19 +1,26 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import type { ApiResponse, InternalHealthResponse } from "@/src/lib/types/api";
 
 export async function GET(req: Request) {
   const secret = req.headers.get("x-internal-cron-secret");
 
   if (!process.env.INTERNAL_CRON_SECRET) {
-    return NextResponse.json(
-      { ok: false, error: "INTERNAL_CRON_SECRET is not configured" },
+    return NextResponse.json<ApiResponse<never>>(
+      {
+        ok: false,
+        error: "INTERNAL_CRON_SECRET is not configured",
+      },
       { status: 500 }
     );
   }
 
   if (secret !== process.env.INTERNAL_CRON_SECRET) {
-    return NextResponse.json(
-      { ok: false, error: "Unauthorized" },
+    return NextResponse.json<ApiResponse<never>>(
+      {
+        ok: false,
+        error: "Unauthorized",
+      },
       { status: 401 }
     );
   }
@@ -26,19 +33,23 @@ export async function GET(req: Request) {
   try {
     await prisma.$queryRaw`SELECT 1`;
     checks.db = true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Health check DB error:", error);
   }
 
-  const ok = checks.app && checks.db;
+  const isHealthy = checks.app && checks.db;
 
-  return NextResponse.json(
+  const data: InternalHealthResponse = {
+    service: "StudexHub",
+    timestamp: new Date().toISOString(),
+    checks,
+  };
+
+  return NextResponse.json<ApiResponse<InternalHealthResponse>>(
     {
-      ok,
-      service: "StudexHub",
-      timestamp: new Date().toISOString(),
-      checks,
+      ok: isHealthy,
+      data,
     },
-    { status: ok ? 200 : 503 }
+    { status: isHealthy ? 200 : 503 }
   );
 }

@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { ApiResponse } from "@/src/lib/types/api";
+import { getErrorMessage } from "@/src/lib/types/common";
 
 type RouteContext = {
   params: Promise<{
     id: string;
   }>;
+};
+
+type DeleteNotificationResult = {
+  id: string;
 };
 
 export async function DELETE(
@@ -27,8 +33,11 @@ export async function DELETE(
     });
 
     if (!notification) {
-      return NextResponse.json(
-        { error: "Notification not found" },
+      return NextResponse.json<ApiResponse<never>>(
+        {
+          ok: false,
+          error: "Notification not found",
+        },
         { status: 404 }
       );
     }
@@ -39,16 +48,34 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json({
-      ok: true,
-      deletedId: id,
-    });
+    return NextResponse.json<ApiResponse<DeleteNotificationResult>>(
+      {
+        ok: true,
+        data: { id },
+        message: "Notification deleted successfully",
+      },
+      { status: 200 }
+    );
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
 
-  } catch (error) {
+    if (message === "UNAUTHORIZED") {
+      return NextResponse.json<ApiResponse<never>>(
+        {
+          ok: false,
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
     console.error("DELETE notification failed:", error);
 
-    return NextResponse.json(
-      { error: "Failed to delete notification" },
+    return NextResponse.json<ApiResponse<never>>(
+      {
+        ok: false,
+        error: "Failed to delete notification",
+      },
       { status: 500 }
     );
   }

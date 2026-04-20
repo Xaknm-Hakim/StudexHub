@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AssignmentPriority, AssignmentStatus } from "@prisma/client";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { ApiResponse, AssignmentWithMeta } from "@/src/lib/types/api";
 import type { UpdateAssignmentBody } from "@/src/lib/types/requests";
 import { getErrorMessage } from "@/src/lib/types/common";
 
@@ -30,8 +31,58 @@ function isAssignmentStatus(value: unknown): value is AssignmentStatus {
   );
 }
 
+function toAssignmentWithMetaResponse(assignment: {
+  id: string;
+  userId: string;
+  title: string;
+  dueDate: Date;
+  status: AssignmentStatus;
+  priority: AssignmentPriority;
+  notes: string | null;
+  completedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  courseId: string | null;
+  course: {
+    id: string;
+    name: string;
+    code: string | null;
+    credit: number;
+  } | null;
+}): AssignmentWithMeta {
+  const { daysLeft, dueStatus } = computeDaysLeft(assignment.dueDate);
+
+  return {
+    id: assignment.id,
+    userId: assignment.userId,
+    courseId: assignment.courseId,
+    title: assignment.title,
+    dueDate: assignment.dueDate.toISOString(),
+    status: assignment.status,
+    priority: assignment.priority,
+    notes: assignment.notes,
+    completedAt: assignment.completedAt?.toISOString() ?? null,
+    createdAt: assignment.createdAt.toISOString(),
+    updatedAt: assignment.updatedAt.toISOString(),
+    daysLeft,
+    dueStatus,
+    course: assignment.course
+      ? {
+          id: assignment.course.id,
+          name: assignment.course.name,
+          code: assignment.course.code,
+          credit: assignment.course.credit,
+        }
+      : null,
+  };
+}
+
 type RouteContext = {
   params: Promise<{ id: string }>;
+};
+
+type DeleteAssignmentResult = {
+  id: string;
 };
 
 export async function PATCH(req: NextRequest, ctx: RouteContext) {
@@ -39,7 +90,8 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
     const userId = await requireUserId();
     const { id } = await ctx.params;
 
-    const body = (await req.json()) as UpdateAssignmentBody;
+    const body: UpdateAssignmentBody = await req.json();
+
     const data: {
       title?: string;
       notes?: string | null;
@@ -54,9 +106,9 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
       const title = body.title.trim();
 
       if (!title) {
-        return NextResponse.json(
+        return NextResponse.json<ApiResponse<never>>(
           {
-            success: false,
+            ok: false,
             error: "title cannot be empty",
           },
           { status: 400 }
@@ -72,9 +124,9 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
 
     if (body.priority !== undefined) {
       if (!isAssignmentPriority(body.priority)) {
-        return NextResponse.json(
+        return NextResponse.json<ApiResponse<never>>(
           {
-            success: false,
+            ok: false,
             error: "Invalid priority",
           },
           { status: 400 }
@@ -88,9 +140,9 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
       const dueDate = new Date(body.dueDate);
 
       if (Number.isNaN(dueDate.getTime())) {
-        return NextResponse.json(
+        return NextResponse.json<ApiResponse<never>>(
           {
-            success: false,
+            ok: false,
             error: "Invalid dueDate",
           },
           { status: 400 }
@@ -102,9 +154,9 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
 
     if (body.status !== undefined) {
       if (!isAssignmentStatus(body.status)) {
-        return NextResponse.json(
+        return NextResponse.json<ApiResponse<never>>(
           {
-            success: false,
+            ok: false,
             error: "Invalid status",
           },
           { status: 400 }
@@ -116,7 +168,19 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
     }
 
     if (body.completedAt !== undefined && body.status === undefined) {
-      data.completedAt = body.completedAt ? new Date(body.completedAt) : null;
+      const completedAt = body.completedAt ? new Date(body.completedAt) : null;
+
+      if (completedAt && Number.isNaN(completedAt.getTime())) {
+        return NextResponse.json<ApiResponse<never>>(
+          {
+            ok: false,
+            error: "Invalid completedAt",
+          },
+          { status: 400 }
+        );
+      }
+
+      data.completedAt = completedAt;
     }
 
     if (body.courseId !== undefined) {
@@ -132,9 +196,9 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
         });
 
         if (!owned) {
-          return NextResponse.json(
+          return NextResponse.json<ApiResponse<never>>(
             {
-              success: false,
+              ok: false,
               error: "Invalid courseId",
             },
             { status: 400 }
@@ -151,9 +215,9 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
     });
 
     if (updated.count === 0) {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Not found",
         },
         { status: 404 }
@@ -164,6 +228,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
       where: { id, userId },
       select: {
         id: true,
+        userId: true,
         title: true,
         dueDate: true,
         status: true,
@@ -185,29 +250,29 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
     });
 
     if (!fresh) {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Not found",
         },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...fresh,
-        ...computeDaysLeft(fresh.dueDate),
+    return NextResponse.json<ApiResponse<AssignmentWithMeta>>(
+      {
+        ok: true,
+        data: toAssignmentWithMetaResponse(fresh),
       },
-    });
+      { status: 200 }
+    );
   } catch (error: unknown) {
     const message = getErrorMessage(error);
 
     if (message === "UNAUTHORIZED") {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Unauthorized",
         },
         { status: 401 }
@@ -216,9 +281,9 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
 
     console.error(error);
 
-    return NextResponse.json(
+    return NextResponse.json<ApiResponse<never>>(
       {
-        success: false,
+        ok: false,
         error: "Failed to update assignment",
       },
       { status: 500 }
@@ -236,27 +301,30 @@ export async function DELETE(_req: NextRequest, ctx: RouteContext) {
     });
 
     if (deleted.count === 0) {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Not found",
         },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: null,
-      message: "Assignment deleted successfully",
-    });
+    return NextResponse.json<ApiResponse<DeleteAssignmentResult>>(
+      {
+        ok: true,
+        data: { id },
+        message: "Assignment deleted successfully",
+      },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     const message = getErrorMessage(error);
 
     if (message === "UNAUTHORIZED") {
-      return NextResponse.json(
+      return NextResponse.json<ApiResponse<never>>(
         {
-          success: false,
+          ok: false,
           error: "Unauthorized",
         },
         { status: 401 }
@@ -265,9 +333,9 @@ export async function DELETE(_req: NextRequest, ctx: RouteContext) {
 
     console.error(error);
 
-    return NextResponse.json(
+    return NextResponse.json<ApiResponse<never>>(
       {
-        success: false,
+        ok: false,
         error: "Failed to delete assignment",
       },
       { status: 500 }
