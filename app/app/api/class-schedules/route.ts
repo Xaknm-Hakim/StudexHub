@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { ClassScheduleRecord } from "@/src/lib/types/db";
 import {
   formatClassSchedule,
   hasValidTimeRange,
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const existingSchedules = await prisma.classSchedule.findMany({
+  const existingSchedules: ClassScheduleRecord[] = await prisma.classSchedule.findMany({
     where: {
       userId,
       dayOfWeek,

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { CourseRecord, SemesterRecord } from "@/src/lib/types/db";
+
+type SemesterGpaRow = Pick<SemesterRecord, "id" | "name"> & {
+  courses: Array<Pick<CourseRecord, "credit" | "gradePoint" | "mark">>;
+};
 
 export async function GET(
   _req: Request,
@@ -9,7 +14,7 @@ export async function GET(
   const userId = await requireUserId();
   const { semesterId } = await ctx.params;
 
-  const semester = await prisma.semester.findFirst({
+  const semester: SemesterGpaRow | null = await prisma.semester.findFirst({
     where: { id: semesterId, userId },
     select: {
       id: true,

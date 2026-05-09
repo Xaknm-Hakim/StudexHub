@@ -1,19 +1,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { CourseRecord, SemesterRecord } from "@/src/lib/types/db";
+import type { Summary } from "@/src/lib/types/summary";
+
+const semesterSummarySelect = {
+  id: true,
+  name: true,
+  year: true,
+  courses: { select: { credit: true, gradePoint: true } },
+} as const;
 
 export async function GET() {
   const userId = await requireUserId();
 
-  const semesters = await prisma.semester.findMany({
+  const semesters: Array<
+    Pick<SemesterRecord, "id" | "name" | "year"> & {
+      courses: Array<Pick<CourseRecord, "credit" | "gradePoint">>;
+    }
+  > = await prisma.semester.findMany({
     where: { userId },
     orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      name: true,
-      year: true,
-      courses: { select: { credit: true, gradePoint: true } },
-    },
+    select: semesterSummarySelect,
   });
 
   const semesterStats = semesters.map((s) => {
@@ -34,5 +42,7 @@ export async function GET() {
   const totalQuality = allValid.reduce((sum, c) => sum + c.credit * c.gp, 0);
   const cgpa = totalCredits === 0 ? null : totalQuality / totalCredits;
 
-  return NextResponse.json({ cgpa, totalCredits, semesterStats });
+  const summary: Summary = { cgpa, totalCredits, semesterStats };
+
+  return NextResponse.json(summary);
 }

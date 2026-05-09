@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AssignmentPriority, AssignmentStatus } from "@prisma/client";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { AssignmentPriority, AssignmentStatus } from "@/src/lib/types/enums";
 import type { UpdateAssignmentBody } from "@/src/lib/types/requests";
 import { getErrorMessage } from "@/src/lib/types/common";
+
+const assignmentPriorities = ["LOW", "MEDIUM", "HIGH"] as const satisfies readonly AssignmentPriority[];
+const assignmentStatuses = ["PENDING", "DONE"] as const satisfies readonly AssignmentStatus[];
 
 function computeDaysLeft(dueDate: Date) {
   const today = new Date();
@@ -19,14 +22,14 @@ function computeDaysLeft(dueDate: Date) {
 function isAssignmentPriority(value: unknown): value is AssignmentPriority {
   return (
     typeof value === "string" &&
-    Object.values(AssignmentPriority).includes(value as AssignmentPriority)
+    assignmentPriorities.includes(value as AssignmentPriority)
   );
 }
 
 function isAssignmentStatus(value: unknown): value is AssignmentStatus {
   return (
     typeof value === "string" &&
-    Object.values(AssignmentStatus).includes(value as AssignmentStatus)
+    assignmentStatuses.includes(value as AssignmentStatus)
   );
 }
 
@@ -112,7 +115,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
       }
 
       data.status = body.status;
-      data.completedAt = body.status === AssignmentStatus.DONE ? new Date() : null;
+      data.completedAt = body.status === "DONE" ? new Date() : null;
     }
 
     if (body.completedAt !== undefined && body.status === undefined) {
