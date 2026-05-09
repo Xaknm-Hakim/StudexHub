@@ -1,6 +1,6 @@
 # System Overview
 
-This document provides a comprehensive overview of the BaruasHub system. It explains the purpose of the platform, the problems it aims to solve, the core system components, and how different parts of the application work together.
+This document provides a comprehensive overview of the StudexHub system. It explains the purpose of the platform, the problems it aims to solve, the core system components, and how different parts of the application work together.
 
 While other documents focus on specific areas (such as architecture or deployment), this document serves as the **complete high‑level explanation of the entire system**.
 
@@ -8,7 +8,7 @@ While other documents focus on specific areas (such as architecture or deploymen
 
 # 1. Project Purpose
 
-BaruasHub is an academic management platform designed primarily for diploma students who want a structured way to manage their academic activities.
+StudexHub is an academic management platform designed primarily for diploma students who want a structured way to manage their academic activities.
 
 The system focuses on helping students track:
 
@@ -25,7 +25,7 @@ The goal is to provide a **single centralized dashboard** where students can vie
 
 # 2. System Goals
 
-BaruasHub was built with several design goals in mind:
+StudexHub was built with several design goals in mind:
 
 ## Practical Academic Tool
 
@@ -54,7 +54,7 @@ The project also functions as a learning platform for infrastructure engineering
 
 # 3. Core System Features
 
-The BaruasHub system is built around several key functional modules.
+The StudexHub system is built around several key functional modules.
 
 ## 3.1 Authentication System
 
@@ -316,7 +316,7 @@ Separating logic from API routes helps keep the application modular and maintain
 
 # 9. Database Layer
 
-BaruasHub uses **PostgreSQL** as its primary database.
+StudexHub uses **PostgreSQL** as its primary database.
 
 Database access is handled through **Prisma ORM**.
 
@@ -403,7 +403,7 @@ These improvements would further strengthen the system's reliability and scalabi
 
 # 13. Summary
 
-BaruasHub combines several modern engineering practices into a single cohesive system:
+StudexHub combines several modern engineering practices into a single cohesive system:
 
 * full-stack web development
 * containerized infrastructure

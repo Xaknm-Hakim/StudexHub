@@ -1,4 +1,4 @@
-# Docker Setup — StudexCenter / BaruasHub
+# Docker Setup — StudexHub
 
 This document explains how the project runs using Docker, how the environment variables are structured, and how to perform common development tasks.
 
@@ -41,7 +41,7 @@ Docker Compose manages:
 # Directory Structure
 
 ```
-BaruasHub/
+StudexHub/
 │
 ├─ app/                    # Next.js application
 │   ├─ Dockerfile

@@ -19,7 +19,7 @@ export default function AboutPage() {
       <div className="bg-zinc-900 rounded-2xl p-8 shadow-lg">
         <h1 className="text-3xl font-bold mb-4">About This Project</h1>
         <p className="text-zinc-400 leading-relaxed">
-BaruasHub is a static-first collaborative web project designed to simulate real-world software engineering workflow, infrastructure planning, and DevOps practices.
+StudexHub is a static-first collaborative web project designed to simulate real-world software engineering workflow, infrastructure planning, and DevOps practices.
 
 This project functions as a structured technical playground where we practice disciplined development, clear documentation, and defined engineering roles — while building a scalable and meaningful platform.
         </p>
