@@ -23,7 +23,7 @@ export async function sendEmail(args: SendEmailArgs) {
   const gmail = getGmailClient();
 
   const mime = [
-    `From: BaruasHub <${from}>`,
+    `From: StudexHub <${from}>`,
     `To: ${args.to}`,
     `Subject: ${args.subject}`,
     "MIME-Version: 1.0",

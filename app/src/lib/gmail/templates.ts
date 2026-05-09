@@ -31,9 +31,9 @@ export function buildAssignmentReminderEmail(
     `Due date: ${formatDate(args.dueDate)}`,
     courseLine,
     "",
-    `Open BaruasHub: ${args.appUrl}`,
+    `Open StudexHub: ${args.appUrl}`,
     "",
-    "This is an automated reminder from BaruasHub.",
+    "This is an automated reminder from StudexHub.",
   ]
     .filter(Boolean)
     .join("\n");

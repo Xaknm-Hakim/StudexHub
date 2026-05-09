@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "StudexHub",
-  description: "Formerly BaruasHub, a joke among male friends",
+  description: "Academic management dashboard for students",
 };
 
 export default function RootLayout({

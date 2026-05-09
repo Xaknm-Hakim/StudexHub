@@ -1,6 +1,6 @@
 # System Architecture
 
-This document explains the high‑level architecture of the BaruasHub system: how the application is structured, how requests flow through the infrastructure, and how the main services interact with each other.
+This document explains the high‑level architecture of the StudexHub system: how the application is structured, how requests flow through the infrastructure, and how the main services interact with each other.
 
 The architecture is intentionally designed to mirror real production patterns while still being simple enough to run on a single homelab server.
 
@@ -8,7 +8,7 @@ The architecture is intentionally designed to mirror real production patterns wh
 
 # 1. High Level Overview
 
-BaruasHub is a **self‑hosted full‑stack web application** composed of several layers:
+StudexHub is a **self‑hosted full‑stack web application** composed of several layers:
 
 * Edge network (Cloudflare)
 * Reverse proxy (Nginx)

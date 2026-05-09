@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This document describes how BaruasHub is deployed to the production server. It explains the infrastructure components involved and the step‑by‑step process used to run the application in a production environment.
+This document describes how StudexHub is deployed to the production server. It explains the infrastructure components involved and the step‑by‑step process used to run the application in a production environment.
 
 The deployment is intentionally designed to be **simple, reproducible, and close to real‑world infrastructure practices**.
 
@@ -8,7 +8,7 @@ The deployment is intentionally designed to be **simple, reproducible, and close
 
 # 1. Deployment Overview
 
-BaruasHub is deployed on a **self‑hosted Linux server** (ThinkPad homelab machine).
+StudexHub is deployed on a **self‑hosted Linux server** (ThinkPad homelab machine).
 
 The system uses the following infrastructure components:
 
