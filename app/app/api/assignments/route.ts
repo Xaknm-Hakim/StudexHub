@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AssignmentPriority, AssignmentStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/src/lib/prisma";
 import { requireUserId } from "@/src/lib/auth";
+import type { AssignmentPriority, AssignmentStatus } from "@/src/lib/types/enums";
+import type { AssignmentRecord, CourseRecord } from "@/src/lib/types/db";
 import type { CreateAssignmentBody } from "@/src/lib/types/requests";
 import { getErrorMessage } from "@/src/lib/types/common";
+
+const assignmentPriorities = ["LOW", "MEDIUM", "HIGH"] as const satisfies readonly AssignmentPriority[];
+const assignmentStatuses = ["PENDING", "DONE"] as const satisfies readonly AssignmentStatus[];
 
 function computeDaysLeft(dueDate: Date) {
   const today = new Date();
@@ -19,16 +23,34 @@ function computeDaysLeft(dueDate: Date) {
 function isAssignmentPriority(value: unknown): value is AssignmentPriority {
   return (
     typeof value === "string" &&
-    Object.values(AssignmentPriority).includes(value as AssignmentPriority)
+    assignmentPriorities.includes(value as AssignmentPriority)
   );
 }
 
 function isAssignmentStatus(value: unknown): value is AssignmentStatus {
   return (
     typeof value === "string" &&
-    Object.values(AssignmentStatus).includes(value as AssignmentStatus)
+    assignmentStatuses.includes(value as AssignmentStatus)
   );
 }
+
+type SortOrder = "asc" | "desc";
+
+type AssignmentListRow = Pick<
+  AssignmentRecord,
+  | "id"
+  | "title"
+  | "dueDate"
+  | "status"
+  | "priority"
+  | "notes"
+  | "completedAt"
+  | "createdAt"
+  | "updatedAt"
+  | "courseId"
+> & {
+  course: Pick<CourseRecord, "id" | "name" | "code" | "credit"> | null;
+};
 
 // GET /api/assignments?status=PENDING|DONE&courseId=...&q=...&sort=dueDate&order=asc
 export async function GET(req: NextRequest) {
@@ -40,10 +62,15 @@ export async function GET(req: NextRequest) {
     const courseId = url.searchParams.get("courseId");
     const q = url.searchParams.get("q")?.trim();
     const sortParam = url.searchParams.get("sort") ?? "dueDate";
-    const order: Prisma.SortOrder =
+    const order: SortOrder =
       (url.searchParams.get("order") ?? "asc").toLowerCase() === "desc" ? "desc" : "asc";
 
-    const where: Prisma.AssignmentWhereInput = { userId };
+    const where: {
+      userId: string;
+      status?: AssignmentStatus;
+      courseId?: string;
+      title?: { contains: string; mode: "insensitive" };
+    } = { userId };
 
     if (statusParam) {
       if (!isAssignmentStatus(statusParam)) {
@@ -78,7 +105,7 @@ export async function GET(req: NextRequest) {
 
     const sortField = allowedSortFields[sortParam] ? sortParam : "dueDate";
 
-    const rows = await prisma.assignment.findMany({
+    const rows: AssignmentListRow[] = await prisma.assignment.findMany({
       where,
       orderBy: { [sortField]: order },
       select: {
@@ -150,10 +177,10 @@ export async function POST(req: NextRequest) {
     const rawPriority = body.priority;
     const priority: AssignmentPriority =
       rawPriority == null
-        ? AssignmentPriority.MEDIUM
+        ? "MEDIUM"
         : isAssignmentPriority(rawPriority)
           ? rawPriority
-          : AssignmentPriority.MEDIUM;
+          : "MEDIUM";
 
     if (!title || !dueDateRaw) {
       return NextResponse.json(
@@ -204,7 +231,7 @@ export async function POST(req: NextRequest) {
         dueDate,
         notes,
         priority,
-        status: AssignmentStatus.PENDING,
+        status: "PENDING",
         courseId,
       },
       select: {
