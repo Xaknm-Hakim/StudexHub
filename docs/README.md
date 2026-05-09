@@ -1,47 +1,40 @@
 # StudexHub Documentation
 
-This directory contains the technical documentation for the **StudexHub** project.
-
-The documentation is organized into several sections covering system architecture, infrastructure setup, and API references.
-
----
+This directory contains technical documentation for StudexHub.
 
 ## Overview
 
-High-level explanations of the system design and architecture.
-
-- [System Overview](overview-docs/system-overview.md) *(coming soon)*
-- [Architecture](overview-docs/architecture.md) *(coming soon)*
-- [Deployment Guide](overview-docs/deployment.md) *(coming soon)*
-
----
+- [System Overview](overview-docs/system-overview.md)
+- [Architecture](overview-docs/architecture.md)
+- [Deployment Guide](overview-docs/deployment.md)
 
 ## Infrastructure
-
-Documentation related to infrastructure configuration and system networking.
 
 - [Docker Setup](infra-docs/docker.md)
 - [Network Configuration](infra-docs/network.md)
 
----
-
 ## API Documentation
 
-Reference documentation for backend API endpoints used by the application.
+- [Academics API](api-docs/academics.md)
+- [Assignments API](api-docs/assignments.md)
+- [Authentication API](api-docs/auth.md)
+- [Class Schedules API](api-docs/class-schedules.md)
+- [Courses API](api-docs/courses.md)
+- [Internal API](api-docs/internal.md)
+- [Notifications API](api-docs/notifications.md)
+- [Semesters API](api-docs/semesters.md)
+- [Type System](api-docs/types.md)
+- [API Documentation Template](api-docs/templates.md)
 
-- [API Overview](api-docs/api.md)
-- [Authentication API](api-docs/api-auth.md)
-- [CGPA API](api-docs/api-cgpa.md)
-- [Assignments API](api-docs/assignments-api.md)
-- [Notifications API](api-docs/notifications-api.md)
-- [Schedules API](api-docs/schedules-api.md)
-- [Update Semester API](api-docs/update-semester-api.md)
+## Archived API Documentation
 
----
+Historical API documents live under [api-docs/legacy](api-docs/legacy/).
 
-## Notes
+Treat legacy documents as archived context only. If implementation, current API docs, and legacy docs disagree, trust the implementation first and current API docs second.
 
-Some documentation sections are still under development as the project is actively evolving.  
-High-level architecture and deployment documentation will be finalized after the production deployment phase.
+## Documentation Rules
 
----
+- Document current implemented behavior, not planned behavior.
+- Keep API docs under `docs/api-docs`.
+- Use [api-docs/templates.md](api-docs/templates.md) when adding or refreshing API route documentation.
+- Keep project naming consistent as StudexHub.
