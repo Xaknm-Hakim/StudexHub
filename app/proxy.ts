@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 const SECRET = process.env.AUTH_SECRET!;
 const key = new TextEncoder().encode(SECRET);
 
-const protectedPaths = ["/dashboard", "/academic", "/assignments"];
+const protectedPaths = ["/dashboard", "/assignments", "/cgpa", "/schedules", "/about"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -30,5 +30,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/academic/:path*", "/assignments/:path*"],
+  matcher: ["/dashboard/:path*", "/assignments/:path*", "/cgpa/:path*", "/schedules/:path*", "/about/:path*"],
 };
