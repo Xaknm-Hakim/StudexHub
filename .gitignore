@@ -2,3 +2,24 @@
 /package-lock.json
 /node_modules
 /infra/docker/.env.docker
+
+# local AI assistant instructions
+/AGENTS.md
+/.codex/
+
+# local secrets / runtime data
+.env
+.env.*
+!.env.example
+
+storage/
+backups/
+dumps/
+*.sql
+*.sqlite
+*.db
+*.pem
+*.key
+*.crt
+*.p12
+*.token
