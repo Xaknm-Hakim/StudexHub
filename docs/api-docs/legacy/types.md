@@ -1,5 +1,8 @@
-
 # Types System Documentation — StudexHub
+
+> Last Updated: 2026-05-10
+> Status: Archived / Legacy
+> Do not treat this document as the current API contract.
 
 ## 🎯 Purpose
 

@@ -1,12 +1,16 @@
 # RUNBOOK
 
-This runbook provides operational instructions for maintaining and operating the BaruasHub system in production. It is intended to serve as a quick reference for routine operations, troubleshooting, and recovery procedures.
+> Last Updated: 2026-05-10
+> Scope: Operations runbook
+> Status: Active
+
+This runbook provides operational instructions for maintaining and operating the StudexHub system in production. It is intended to serve as a quick reference for routine operations, troubleshooting, and recovery procedures.
 
 ---
 
 # 1. System Overview
 
-BaruasHub runs on a self‑hosted Linux server using the following stack:
+StudexHub runs on a self-hosted Linux server using the following stack:
 
 * Docker
 * Docker Compose
@@ -26,8 +30,10 @@ User → Cloudflare → Cloudflare Tunnel → Nginx → Next.js Container → Po
 Example server location:
 
 ```
-/opt/baruashub/
+/opt/baruashub/StudexHub/
 ```
+
+VERIFY: Confirm the actual production checkout path before running commands. Current Docker Compose references `/opt/baruashub/StudexHub/infra` as a mounted infra path.
 
 Main directories:
 
@@ -44,19 +50,21 @@ docs/     → documentation
 Navigate to the infrastructure directory:
 
 ```
-cd /opt/baruashub/infra/docker
+cd /opt/baruashub/StudexHub/infra/docker
 ```
+
+VERIFY: Use the actual production checkout path.
 
 Start services:
 
 ```
-docker compose up -d
+docker compose --env-file .env.docker -f docker-compose.yml up -d
 ```
 
 Verify containers:
 
 ```
-docker compose ps
+docker compose --env-file .env.docker -f docker-compose.yml ps
 ```
 
 ---
@@ -64,7 +72,7 @@ docker compose ps
 # 4. Stop the System
 
 ```
-docker compose down
+docker compose --env-file .env.docker -f docker-compose.yml down
 ```
 
 ---
@@ -74,13 +82,13 @@ docker compose down
 Restart all services:
 
 ```
-docker compose restart
+docker compose --env-file .env.docker -f docker-compose.yml restart
 ```
 
 Restart a specific service:
 
 ```
-docker compose restart web
+docker compose --env-file .env.docker -f docker-compose.yml restart web
 ```
 
 ---
@@ -96,19 +104,19 @@ git pull origin main
 Rebuild containers:
 
 ```
-docker compose build
+docker compose --env-file .env.docker -f docker-compose.yml build
 ```
 
 Restart containers:
 
 ```
-docker compose up -d
+docker compose --env-file .env.docker -f docker-compose.yml up -d
 ```
 
 Run database migrations:
 
 ```
-docker compose exec web npx prisma migrate deploy
+docker compose --env-file .env.docker -f docker-compose.yml exec web npx prisma migrate deploy
 ```
 
 ---
@@ -118,19 +126,19 @@ docker compose exec web npx prisma migrate deploy
 Application logs:
 
 ```
-docker compose logs -f web
+docker compose --env-file .env.docker -f docker-compose.yml logs -f web
 ```
 
 Database logs:
 
 ```
-docker compose logs -f db
+docker compose --env-file .env.docker -f docker-compose.yml logs -f db
 ```
 
 All logs:
 
 ```
-docker compose logs -f
+docker compose --env-file .env.docker -f docker-compose.yml logs -f
 ```
 
 ---
@@ -178,8 +186,10 @@ sudo systemctl restart cloudflared
 Open PostgreSQL shell:
 
 ```
-docker compose exec db psql -U postgres
+docker compose --env-file .env.docker -f docker-compose.yml exec db psql -U postgres
 ```
+
+VERIFY: Confirm the production database user and database name from the approved environment configuration before connecting.
 
 ---
 
@@ -188,10 +198,14 @@ docker compose exec db psql -U postgres
 Manual backup example:
 
 ```
-docker compose exec db pg_dump -U postgres database_name > backup.sql
+docker compose --env-file .env.docker -f docker-compose.yml exec db pg_dump -U postgres YOUR_DATABASE_NAME > backup.sql
 ```
 
+Replace `YOUR_DATABASE_NAME` with the actual PostgreSQL database name from `.env.docker`. Do not use angle brackets in shell commands because `<...>` is treated as shell redirection.
+
 Recommended to automate backups using cron.
+
+VERIFY: Confirm `YOUR_DATABASE_NAME` and backup destination before running a backup.
 
 ---
 
@@ -200,7 +214,7 @@ Recommended to automate backups using cron.
 Verify containers:
 
 ```
-docker compose ps
+docker compose --env-file .env.docker -f docker-compose.yml ps
 ```
 
 Check disk usage:
@@ -224,13 +238,13 @@ free -h
 Check container logs:
 
 ```
-docker compose logs web
+docker compose --env-file .env.docker -f docker-compose.yml logs web
 ```
 
 Verify container is running:
 
 ```
-docker compose ps
+docker compose --env-file .env.docker -f docker-compose.yml ps
 ```
 
 ---
@@ -251,13 +265,13 @@ Check Nginx logs:
 Verify database container:
 
 ```
-docker compose ps
+docker compose --env-file .env.docker -f docker-compose.yml ps
 ```
 
 Restart database:
 
 ```
-docker compose restart db
+docker compose --env-file .env.docker -f docker-compose.yml restart db
 ```
 
 ---
@@ -275,7 +289,7 @@ systemctl status docker
 2. Start containers if necessary
 
 ```
-docker compose up -d
+docker compose --env-file .env.docker -f docker-compose.yml up -d
 ```
 
 3. Verify Nginx and Cloudflare tunnel

@@ -1,5 +1,9 @@
 # Class Schedules API
 
+> Last Updated: 2026-05-10
+> Status: Archived / Legacy
+> Do not treat this document as the current API contract.
+
 This document explains how to use the Class Schedules backend in BaruasHub.
 
 ## Purpose

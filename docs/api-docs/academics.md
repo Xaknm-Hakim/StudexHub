@@ -1,9 +1,8 @@
-
 # Academics API
 
-> Generated: 2026-04-18
-> Last Updated: 2026-04-18
-> Source: app/app/api/academics/summary
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: `app/app/api/academics/summary`
 
 ---
 
@@ -30,7 +29,7 @@ Authentication is enforced through `requireUserId()`, which reads the session co
 | Name | Type | Required | Description                                     |
 | ---- | ---- | -------- | ----------------------------------------------- |
 | None | -    | No       | This endpoint does not accept query parameters. |
-Small audit note: this endpoint is actually more of a summary/reporting endpoint than a basic CRUD resource. That is fine, but it means academics.md should probably stay very small unless you add more reporting routes later.
+
 ### Request Body
 
 ```json
@@ -81,5 +80,9 @@ Small audit note: this endpoint is actually more of a summary/reporting endpoint
 * Semesters are returned in ascending order by `createdAt`.
 * If the user has no graded courses at all, `cgpa` returns `null` and `totalCredits` returns `0`.
 * If a semester has no graded courses, that semester still appears in `semesterStats`, but `gpa` is `null` and `credits` is `0`.
-* ⚠️ Error handling is not explicitly implemented in this route. `requireUserId()` throws `UNAUTHORIZED`, but the route does not catch it here, so final HTTP error behavior depends on the surrounding application error handling.
-* ⚠️ Response field types for IDs depend on the Prisma schema, but from usage they are treated as string-like identifiers.
+* Error handling is not explicitly implemented in this route. `requireUserId()` throws `UNAUTHORIZED`, but the route does not catch it here, so final HTTP error behavior is Needs verification.
+* Response field types for IDs depend on the Prisma schema, but from usage they are treated as string-like identifiers.
+
+### Common Error Responses
+
+Needs verification. The route does not define local error responses.

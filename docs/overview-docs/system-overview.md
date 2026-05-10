@@ -1,5 +1,9 @@
 # System Overview
 
+> Last Updated: 2026-05-10
+> Scope: System overview
+> Status: Active
+
 This document provides a comprehensive overview of the StudexHub system. It explains the purpose of the platform, the problems it aims to solve, the core system components, and how different parts of the application work together.
 
 While other documents focus on specific areas (such as architecture or deployment), this document serves as the **complete high‑level explanation of the entire system**.
@@ -95,7 +99,8 @@ Semester endpoints:
 
 ```
 /api/semesters
-/api/semesters/[semesterId]
+/api/semesters/[semesterId]/courses
+/api/semesters/[semesterId]/gpa
 ```
 
 Additional operations include:
@@ -169,7 +174,9 @@ Schedules store information such as:
 * day of the week
 * start time
 * end time
-* associated course
+* optional location
+
+VERIFY: Current schedule API documentation does not show a course relation for class schedules.
 
 ---
 
@@ -300,7 +307,7 @@ Each API domain corresponds to a feature area such as:
 Shared business logic is located in:
 
 ```
-/src/lib/
+app/src/lib/
 ```
 
 This layer contains reusable logic for:
@@ -345,7 +352,9 @@ Database migrations are stored in:
 
 # 10. Infrastructure Layer
 
-The entire system runs on a **self-hosted Linux server**.
+The documented deployment target is a **self-hosted Linux server**.
+
+VERIFY: Confirm the active production host and topology before treating this as the current live deployment.
 
 Infrastructure stack:
 
@@ -386,9 +395,9 @@ The application was later containerized using Docker and deployed on a self-host
 
 ---
 
-# 12. Future Improvements
+# 12. Not Current Behavior
 
-Potential future system enhancements include:
+The following items are not documented as current implemented behavior:
 
 * background worker service for scheduled tasks
 * improved analytics dashboard
@@ -397,7 +406,7 @@ Potential future system enhancements include:
 * monitoring tools
 * CI/CD pipeline
 
-These improvements would further strengthen the system's reliability and scalability.
+VERIFY before documenting any of these as implemented.
 
 ---
 

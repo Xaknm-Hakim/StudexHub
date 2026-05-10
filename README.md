@@ -1,5 +1,9 @@
 # StudexHub
 
+> Last Updated: 2026-05-10
+> Scope: Project overview
+> Status: Active
+
 StudexHub is a full-stack academic management web application for tracking semesters, courses, assignments, class schedules, GPA/CGPA, and reminders.
 
 The project is built as a practical student tool and as a self-hosted full-stack/infrastructure project using Next.js, PostgreSQL, Prisma, Docker, Nginx, and Cloudflare Tunnel.
@@ -64,7 +68,7 @@ The project is built as a practical student tool and as a self-hosted full-stack
 - [Type System](docs/api-docs/types.md)
 - [API Documentation Template](docs/api-docs/templates.md)
 
-Historical API documents are archived under [docs/api-docs/legacy](docs/api-docs/legacy/). Use current source code and current API docs when legacy docs conflict.
+Historical API documents are archived under [docs/api-docs/legacy](docs/api-docs/legacy/). Do not treat legacy documents as the current API contract. Use current source code first and current API docs second when legacy docs conflict.
 
 ---
 

@@ -1,9 +1,8 @@
-
 # Semesters API
 
-> Generated: 2026-04-18
-> Last Updated: 2026-04-18
-> Source: app/app/api/semesters
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: `app/app/api/semesters`, `app/app/api/semesters/[semesterId]`
 
 ---
 
@@ -64,7 +63,7 @@ Authentication is enforced through `requireUserId()`.
 
 * This route returns static semester options, not the authenticated user's created semester records.
 * Supported slots are `0` through `5`.
-* ⚠️ This route does not include local `try/catch`, so unauthorized or unexpected errors rely on the surrounding application error handling.
+* Unauthorized and unexpected error response behavior is Needs verification because the route does not include local `try/catch`.
 
 ---
 
@@ -110,7 +109,8 @@ Authentication is enforced through `requireUserId()`.
 
 ```json
 {
-  "course": {
+  "success": true,
+  "data": {
     "id": "course_001",
     "semesterId": "sem_001",
     "name": "Database",
@@ -135,36 +135,56 @@ Authentication is enforced through `requireUserId()`.
   * `mark = Math.floor(mark)`
   * `gradePoint = markToGradePoint(mark).point`
 * Returns `404` if the semester does not exist or is not owned by the authenticated user.
+* Success returns `201`.
 
 ### Common Error Responses
 
 ```json
 {
+  "success": false,
   "error": "Invalid JSON"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "name is required"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "credit must be a positive integer"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Semester not found"
 }
 ```
 
 ```json
 {
-  "error": "mark must be an integer between 0 and 100"
+  "success": false,
+  "error": "mark must be between 0 and 100"
+}
+```
+
+```json
+{
+  "success": false,
+  "error": "Unauthorized"
+}
+```
+
+```json
+{
+  "success": false,
+  "error": "Failed to create course"
 }
 ```
 
@@ -224,6 +244,7 @@ Authentication is enforced through `requireUserId()`.
 * GPA calculation only includes courses where `gradePoint !== null`.
 * If no valid graded courses exist, `gpa` returns `null` and `totalCredits` returns `0`.
 * Returns `404` if the semester does not exist or is not owned by the authenticated user.
+* Unauthorized and unexpected error response behavior is Needs verification because the route does not include local `try/catch`.
 
 ### Common Error Responses
 

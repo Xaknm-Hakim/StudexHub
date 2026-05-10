@@ -1,9 +1,8 @@
-
 # Assignments API
 
-> Generated: 2026-04-18
-> Last Updated: 2026-04-18
-> Source: app/app/api/assignments
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: `app/app/api/assignments`, `app/app/api/assignments/[id]`
 
 ---
 
@@ -45,7 +44,7 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 
 ```json
 {
-  "ok": true,
+  "success": true,
   "data": [
     {
       "id": "assign_001",
@@ -75,7 +74,7 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 
 | Field                  | Type             | Description                                                 |
 | ---------------------- | ---------------- | ----------------------------------------------------------- |
-| `ok`                   | `boolean`        | Indicates successful request handling.                      |
+| `success`              | `boolean`        | Indicates successful request handling.                      |
 | `data`                 | `array`          | List of assignment records owned by the authenticated user. |
 | `data[].id`            | `string`         | Assignment ID.                                              |
 | `data[].title`         | `string`         | Assignment title.                                           |
@@ -90,7 +89,7 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 | `data[].course`        | `object \| null` | Linked course summary.                                      |
 | `data[].course.id`     | `string`         | Course ID.                                                  |
 | `data[].course.name`   | `string`         | Course name.                                                |
-| `data[].course.code`   | `string`         | Course code.                                                |
+| `data[].course.code`   | `string \| null` | Course code.                                                |
 | `data[].course.credit` | `number`         | Course credit value.                                        |
 | `data[].daysLeft`      | `number`         | Whole-day difference between today and due date.            |
 | `data[].dueStatus`     | `string`         | One of `OVERDUE`, `DUE_TODAY`, or `DUE_IN_X_DAYS`.          |
@@ -100,8 +99,31 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 * Results are always scoped to the authenticated user.
 * Search only checks the assignment `title` field.
 * `daysLeft` and `dueStatus` are computed at response time and are not stored values.
-* ⚠️ The `status` query parameter is passed directly into the Prisma filter without explicit enum validation in this route.
-* ⚠️ The `sort` field is also passed directly into `orderBy`. Invalid field names may cause runtime errors depending on request input and Prisma behavior.
+* `status` must be `PENDING` or `DONE` when provided.
+* `sort` is limited to `dueDate`, `createdAt`, `updatedAt`, `title`, `priority`, or `status`. Unknown sort fields fall back to `dueDate`.
+
+### Common Error Responses
+
+```json
+{
+  "success": false,
+  "error": "Unauthorized"
+}
+```
+
+```json
+{
+  "success": false,
+  "error": "Invalid status"
+}
+```
+
+```json
+{
+  "success": false,
+  "error": "Failed to fetch assignments"
+}
+```
 
 ---
 
@@ -149,7 +171,7 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 
 ```json
 {
-  "ok": true,
+  "success": true,
   "data": {
     "id": "assign_001",
     "title": "Database Proposal",
@@ -186,30 +208,35 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 
 ```json
 {
+  "success": false,
   "error": "Unauthorized"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "title and dueDate are required"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Invalid dueDate"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Invalid courseId"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Failed to create assignment"
 }
 ```
@@ -262,7 +289,7 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 
 ```json
 {
-  "ok": true,
+  "success": true,
   "data": {
     "id": "assign_001",
     "title": "Database Proposal Revised",
@@ -293,42 +320,63 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 * When `status` is set back to `PENDING`, `completedAt` becomes `null`.
 * `courseId` can be explicitly set to `null` to unlink the assignment from a course.
 * `dueDate` must be a valid date string or the endpoint returns `400`.
+* `priority`, when provided, must be `LOW`, `MEDIUM`, or `HIGH`.
 * Returns `404` when no owned assignment matches the given ID.
 
 ### Common Error Responses
 
 ```json
 {
+  "success": false,
   "error": "Unauthorized"
 }
 ```
 
 ```json
 {
+  "success": false,
+  "error": "title cannot be empty"
+}
+```
+
+```json
+{
+  "success": false,
+  "error": "Invalid priority"
+}
+```
+
+```json
+{
+  "success": false,
   "error": "Invalid dueDate"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Invalid status"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Invalid courseId"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Not found"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Failed to update assignment"
 }
 ```
@@ -363,7 +411,9 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 
 ```json
 {
-  "ok": true
+  "success": true,
+  "data": null,
+  "message": "Assignment deleted successfully"
 }
 ```
 
@@ -376,18 +426,21 @@ Authentication is enforced through `requireUserId()`. If the session is missing 
 
 ```json
 {
+  "success": false,
   "error": "Unauthorized"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Not found"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Failed to delete assignment"
 }
 ```

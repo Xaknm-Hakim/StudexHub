@@ -1,5 +1,9 @@
 # Deployment Guide
 
+> Last Updated: 2026-05-10
+> Scope: Deployment guide
+> Status: Active
+
 This document describes how StudexHub is deployed to the production server. It explains the infrastructure components involved and the step‑by‑step process used to run the application in a production environment.
 
 The deployment is intentionally designed to be **simple, reproducible, and close to real‑world infrastructure practices**.
@@ -8,7 +12,9 @@ The deployment is intentionally designed to be **simple, reproducible, and close
 
 # 1. Deployment Overview
 
-StudexHub is deployed on a **self‑hosted Linux server** (ThinkPad homelab machine).
+StudexHub is documented for deployment on a **self-hosted Linux server**.
+
+VERIFY: Confirm the active production host before treating this as the exact live deployment.
 
 The system uses the following infrastructure components:
 
@@ -83,6 +89,8 @@ Example layout:
 ├── web/                # Static MVP version
 └── README.md
 ```
+
+VERIFY: Confirm the current production checkout path. Current Docker Compose references `/opt/baruashub/StudexHub/infra` as a mounted infra path.
 
 Infrastructure files are located in:
 
@@ -278,13 +286,13 @@ Example backup command:
 pg_dump -U postgres database_name > backup.sql
 ```
 
-Future improvements may include automated backup scripts.
+VERIFY: Confirm the actual backup schedule, retention policy, and destination before documenting backups as implemented.
 
 ---
 
-# 11. Future Deployment Improvements
+# 11. Not Current Behavior
 
-Potential enhancements to the deployment pipeline include:
+The following items are not documented as current implemented behavior:
 
 * automated CI/CD pipelines
 * container image registry
@@ -292,4 +300,4 @@ Potential enhancements to the deployment pipeline include:
 * infrastructure monitoring
 * centralized logging
 
-These additions would move the deployment process closer to modern production DevOps practices.
+VERIFY before documenting any of these as implemented.

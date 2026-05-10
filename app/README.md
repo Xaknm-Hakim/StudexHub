@@ -1,5 +1,9 @@
 # StudexHub App
 
+> Last Updated: 2026-05-10
+> Scope: App directory guide
+> Status: Active
+
 This directory contains the main StudexHub Next.js application.
 
 ## Structure
@@ -44,4 +48,4 @@ npm run lint
 - [Docker Setup](../docs/infra-docs/docker.md)
 - [Network Configuration](../docs/infra-docs/network.md)
 
-Historical API documents are archived under [../docs/api-docs/legacy](../docs/api-docs/legacy/). Prefer current route implementation and current API docs when legacy docs conflict.
+Historical API documents are archived under [../docs/api-docs/legacy](../docs/api-docs/legacy/). Do not treat legacy documents as the current API contract. Use current route implementation first and current API docs second when legacy docs conflict.

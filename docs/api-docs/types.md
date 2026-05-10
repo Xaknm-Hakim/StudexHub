@@ -1,9 +1,8 @@
-
 # Types System Documentation — StudexHub
 
-> Generated: 2026-04-18
-> Last Updated: 2026-04-18
-> Source: app/src/lib/types
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: VERIFY
 
 ---
 

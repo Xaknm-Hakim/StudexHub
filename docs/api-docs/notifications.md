@@ -1,8 +1,8 @@
 # Notifications API Documentation — StudexHub
 
-> Generated: 2026-05-09
-> Last Updated: 2026-05-09
-> Source: app/app/api/notifications, app/app/api/internal/notifications, app/src/lib/notifications
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: `app/app/api/notifications`, `app/app/api/internal/notifications/run`
 
 ---
 
@@ -150,7 +150,7 @@ Authentication is enforced through `requireUserId()`.
 * Results are scoped to the authenticated user.
 * Results are ordered by `createdAt` descending.
 * The route returns at most `50` notifications.
-* The response is a raw object, not wrapped in `{ ok: true, data: ... }`.
+* The response is a raw object, not wrapped in `{ success: true, data: ... }`.
 * Exact unauthenticated response behavior is Needs verification because `requireUserId()` is outside this document's inspected source set.
 
 ### Common Error Responses
@@ -343,81 +343,11 @@ Authentication is enforced through `requireUserId()`.
 
 ---
 
-## POST /api/internal/notifications/run
+## Internal Notification Run
 
-### Description
+`POST /api/internal/notifications/run` is documented canonically in [Internal API](internal.md).
 
-Runs internal notification generation and delivery-log cleanup.
-
-### Auth
-
-Required
-
-Authentication is enforced through the `x-internal-cron-secret` request header. The value must match `INTERNAL_CRON_SECRET`.
-
-### Query Params
-
-| Name | Type | Required | Description                                     |
-| ---- | ---- | -------- | ----------------------------------------------- |
-| None | -    | No       | This endpoint does not accept query parameters. |
-
-### Required Headers
-
-| Name                     | Type     | Required | Description                             |
-| ------------------------ | -------- | -------- | --------------------------------------- |
-| `x-internal-cron-secret` | `string` | Yes      | Internal cron secret used by the route. |
-
-### Request Body
-
-```json
-{}
-```
-
-### Response
-
-```json
-{
-  "ok": true,
-  "assignmentInAppCreated": 2,
-  "assignmentEmailsSent": 1,
-  "assignmentEmailFailures": 0,
-  "classSummariesCreated": 1,
-  "deliveryLogsDeleted": 4
-}
-```
-
-### Response Fields
-
-| Field                    | Type      | Description                                      |
-| ------------------------ | --------- | ------------------------------------------------ |
-| `ok`                     | `boolean` | Indicates successful cron handling.              |
-| `assignmentInAppCreated` | `number`  | Number of in-app assignment notifications created. |
-| `assignmentEmailsSent`   | `number`  | Number of assignment reminder emails sent.       |
-| `assignmentEmailFailures` | `number` | Number of assignment reminder email failures.    |
-| `classSummariesCreated`  | `number`  | Number of class summary notifications created.   |
-| `deliveryLogsDeleted`    | `number`  | Number of delivery log records deleted.          |
-
-### Notes
-
-* This route is intended for internal cron execution, not frontend UI usage.
-* The route runs assignment reminders first, class reminders second, and delivery-log cleanup last.
-* If `INTERNAL_CRON_SECRET` is missing, the route returns the generic `500` failure response.
-* `RunNotificationsResult` in `app/src/lib/notifications/types.ts` does not include `assignmentEmailFailures`, but this route returns `assignmentEmailFailures`. Needs verification.
-
-### Common Error Responses
-
-```json
-{
-  "error": "Unauthorized"
-}
-```
-
-```json
-{
-  "ok": false,
-  "error": "Failed to run notifications"
-}
-```
+This notifications document describes the reminder-generation behavior used by that internal route to avoid duplicating the route contract in two places.
 
 ---
 
