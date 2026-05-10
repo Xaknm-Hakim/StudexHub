@@ -198,12 +198,14 @@ VERIFY: Confirm the production database user and database name from the approved
 Manual backup example:
 
 ```
-docker compose --env-file .env.docker -f docker-compose.yml exec db pg_dump -U postgres <database_name> > backup.sql
+docker compose --env-file .env.docker -f docker-compose.yml exec db pg_dump -U postgres YOUR_DATABASE_NAME > backup.sql
 ```
+
+Replace `YOUR_DATABASE_NAME` with the actual PostgreSQL database name from `.env.docker`. Do not use angle brackets in shell commands because `<...>` is treated as shell redirection.
 
 Recommended to automate backups using cron.
 
-VERIFY: Confirm `<database_name>` and backup destination before running a backup.
+VERIFY: Confirm `YOUR_DATABASE_NAME` and backup destination before running a backup.
 
 ---
 
