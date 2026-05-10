@@ -1,5 +1,9 @@
 # BaruasHub – Assignments API Documentation
 
+> Last Updated: 2026-05-10
+> Status: Archived / Legacy
+> Do not treat this document as the current API contract.
+
 All endpoints require the user to be logged in.  
 Authentication is handled via HTTP-only cookie: `bh_session`.
 

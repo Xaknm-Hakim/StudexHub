@@ -1,9 +1,8 @@
-
 # Auth API
 
-> Generated: 2026-04-18
-> Last Updated: 2026-04-18
-> Source: app/app/api/auth
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: `app/app/api/auth`
 
 ---
 

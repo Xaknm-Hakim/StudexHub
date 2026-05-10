@@ -1,5 +1,9 @@
 # StudexHub Documentation
 
+> Last Updated: 2026-05-10
+> Scope: Documentation index
+> Status: Active
+
 This directory contains technical documentation for StudexHub.
 
 ## Overview

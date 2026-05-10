@@ -1,9 +1,8 @@
-
 # Internal API
 
-> Generated: 2026-04-18
-> Last Updated: 2026-04-18
-> Source: app/app/api/internal
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: `app/app/api/internal`
 
 ---
 
@@ -158,6 +157,7 @@ Authorization is enforced through the `x-internal-cron-secret` request header, w
   * assignment reminders
   * class reminders
   * delivery log cleanup
+* The route returns `assignmentEmailFailures`, but `RunNotificationsResult` in `app/src/lib/notifications/types.ts` does not currently include that field. Needs verification.
 * If any unhandled error occurs during execution, the route returns `500`.
 
 ### Common Error Responses

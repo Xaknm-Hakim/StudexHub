@@ -1,253 +1,139 @@
 # Network and Public Access Setup
 
-This document records the full networking setup used to expose
-**StudexHub** from a local Dockerized Next.js app to the public internet
-using:
+> Last Updated: 2026-05-10
+> Scope: Network and public access
+> Status: Active
 
--   **Nginx** as reverse proxy
--   **Cloudflare DNS**
--   **Cloudflare Tunnel**
--   **Docker** for app and database containers
+This document records the documented public-access path for StudexHub.
 
-This setup was first tested on a **Debian desktop workspace**, and will
-later be repeated on the real server.
+VERIFY: Confirm the active production host, Cloudflare tunnel, Nginx site file, and DNS records before using this as an operations source of truth.
 
-------------------------------------------------------------------------
+---
 
-## 1. Architecture Overview
+## Architecture Overview
 
-Current tested flow:
+Documented request flow:
 
-User Browser ↓ Cloudflare DNS ↓ Cloudflare Tunnel ↓ Local Debian machine
-↓ Nginx (port 80) ↓ Next.js app in Docker (port 3000)
+```text
+User browser
+  -> Cloudflare DNS
+  -> Cloudflare Tunnel
+  -> Nginx reverse proxy
+  -> Next.js app on port 3000
+  -> PostgreSQL through Prisma
+```
 
-Internal app path:
+The application container is exposed on host port `3000` by the current Docker Compose file.
 
-localhost:80 (Nginx) ↓ 127.0.0.1:3000 ↓ baruashub-web container
+VERIFY: Confirm this port mapping is still active in production before troubleshooting through it.
 
-------------------------------------------------------------------------
+---
 
-## 2. Docker Status Confirmation
+## Docker Reachability
 
-Before setting up Nginx, confirm the app container is running and port
-`3000` is exposed.
+Before checking Nginx or Cloudflare, confirm the app container is running.
 
-### Check running containers
+```bash
+docker compose --env-file infra/docker/.env.docker -f infra/docker/docker-compose.yml ps
+```
 
-docker ps
+The current Compose service names are:
 
-Expected output example:
+| Service | Purpose |
+| ------- | ------- |
+| `web` | Next.js application |
+| `db` | PostgreSQL database |
 
-CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES b46d5fbc32e8
-docker-web "docker-entrypoint.s..." 5 minutes ago Up 5 minutes
-0.0.0.0:3000-\>3000/tcp, \[::\]:3000-\>3000/tcp baruashub-web
-45702fab48bd postgres:16-alpine "docker-entrypoint.s..." 5 minutes ago
-Up 5 minutes 0.0.0.0:5432-\>5432/tcp, \[::\]:5432-\>5432/tcp
-baruashub-db
+The current Compose container names use legacy `baruashub` identifiers.
 
-### Test app directly from host
+VERIFY: Treat those names as existing operational identifiers. Do not rename them without an explicit migration plan.
 
-curl http://127.0.0.1:3000
+---
 
-If HTML is returned, the app is reachable from the host.
+## Nginx Reverse Proxy
 
-------------------------------------------------------------------------
+Nginx is documented as the host-level reverse proxy in front of the Next.js application.
 
-## 3. Nginx Installation
+Expected proxy target:
 
-Install Nginx on Debian:
+```text
+http://127.0.0.1:3000
+```
 
-sudo apt update sudo apt install nginx -y
+Expected public hostnames:
 
-Enable and start:
-
-sudo systemctl enable nginx sudo systemctl start nginx
-
-------------------------------------------------------------------------
-
-## 4. Nginx Reverse Proxy Configuration
-
-Create site config:
-
-sudo nano /etc/nginx/sites-available/baruashub
-
-Example config:
-
-server {{ listen 80; server_name studexhub.com www.studexhub.com;
-
-    client_max_body_size 10M;
-
-    location / {{
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }}
-
-}}
-
-Enable site:
-
-sudo ln -s /etc/nginx/sites-available/baruashub
-/etc/nginx/sites-enabled/ sudo rm -f /etc/nginx/sites-enabled/default
-
-Reload:
-
-sudo nginx -t sudo systemctl reload nginx
-
-------------------------------------------------------------------------
-
-## 5. Domain Purchase
-
-Domain used:
-
+```text
 studexhub.com
+www.studexhub.com
+```
 
-Purchased via **Cloudflare Registrar**.
+VERIFY: Confirm the actual Nginx site path, enabled symlink, server names, and proxy target on the production host.
 
-Benefits: - wholesale pricing - transparent renewal - direct Cloudflare
-integration
+Useful checks:
 
-------------------------------------------------------------------------
+```bash
+sudo nginx -t
+sudo systemctl status nginx
+sudo systemctl reload nginx
+```
 
-## 6. Cloudflared Installation
+---
 
-Add Cloudflare key:
+## Cloudflare Tunnel
 
-curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \| sudo tee
-/usr/share/keyrings/cloudflare-main.gpg \>/dev/null
+Cloudflare Tunnel is documented as the public ingress path. The tunnel should route public hostnames to Nginx on the host.
 
-Add repo:
+Expected tunnel target:
 
-echo 'deb \[signed-by=/usr/share/keyrings/cloudflare-main.gpg\]
-https://pkg.cloudflare.com/cloudflared any main' \| sudo tee
-/etc/apt/sources.list.d/cloudflared.list
+```text
+http://localhost:80
+```
 
-Update:
+VERIFY: Confirm the tunnel name, tunnel ID, credentials file path, and ingress rules on the production host.
 
-sudo apt update
+Useful checks:
 
-Install:
+```bash
+cloudflared tunnel list
+systemctl status cloudflared
+sudo systemctl restart cloudflared
+```
 
-sudo apt install cloudflared
+---
 
-Verify:
+## DNS
 
-cloudflared --version
+The documented domain is:
 
-------------------------------------------------------------------------
-
-## 7. Authorize Machine
-
-cloudflared tunnel login
-
-Choose domain:
-
+```text
 studexhub.com
+```
 
-Credentials saved in:
+Expected hostnames:
 
-\~/.cloudflared/
+```text
+studexhub.com
+www.studexhub.com
+```
 
-------------------------------------------------------------------------
+VERIFY: Confirm Cloudflare DNS records are currently routed to the intended tunnel.
 
-## 8. Create Tunnel
+---
 
-cloudflared tunnel create studexhub
+## Security Notes
 
-Files created:
+The database should not be publicly exposed.
 
-\~/.cloudflared/cert.pem \~/.cloudflared/`<tunnel-id>`{=html}.json
+The current Docker Compose file exposes PostgreSQL on host port `5432`.
 
-------------------------------------------------------------------------
+VERIFY: Confirm whether host-level database exposure is required for the active environment. If it is not required, document the approved change before modifying Docker configuration.
 
-## 9. Tunnel Config
+Internal cron endpoints require the `x-internal-cron-secret` header and must not be exposed as normal frontend workflows.
 
-nano \~/.cloudflared/config.yml
+---
 
-Example:
+## Removed From Current Contract
 
-tunnel: studexhub credentials-file:
-/home/grey/.cloudflared/TUNNEL-ID.json
+This document does not describe Google OAuth setup. The current inspected auth routes are invite signup, login, logout, and session lookup.
 
-ingress: - hostname: studexhub.com service: http://localhost:80 -
-hostname: www.studexhub.com service: http://localhost:80 - service:
-http_status:404
-
-------------------------------------------------------------------------
-
-## 10. Connect Domain
-
-cloudflared tunnel route dns studexhub studexhub.com cloudflared tunnel
-route dns studexhub www.studexhub.com
-
-------------------------------------------------------------------------
-
-## 11. Run Tunnel
-
-cloudflared tunnel run studexhub
-
-Public site becomes available:
-
-https://studexhub.com
-
-Stop tunnel with:
-
-CTRL + C
-
-------------------------------------------------------------------------
-
-## 12. Development Workflow
-
-1.  docker compose up -d
-2.  sudo systemctl start nginx
-3.  cloudflared tunnel run studexhub
-
-------------------------------------------------------------------------
-
-## 13. Production Plan
-
-On real server:
-
--   install Docker
--   deploy project
--   configure Nginx
--   install cloudflared
--   copy tunnel config
--   run cloudflared as system service
-
-sudo cloudflared service install sudo systemctl enable cloudflared sudo
-systemctl start cloudflared
-
-------------------------------------------------------------------------
-
-## 14. Security Notes
-
-Current dev setup exposes Postgres for Prisma Studio.
-
-Production recommendation:
-
--   do not expose port 5432 publicly
--   keep database inside Docker network
-
-------------------------------------------------------------------------
-
-## 15. OAuth Reminder
-
-Add production redirect URL:
-
-https://studexhub.com/api/auth/callback/google
-
-------------------------------------------------------------------------
-
-## 16. Summary
-
-Working stack:
-
-Docker → Nginx → Cloudflare Tunnel → Cloudflare DNS → Internet
+VERIFY before adding OAuth callback URLs or Google sign-in instructions back to the network documentation.

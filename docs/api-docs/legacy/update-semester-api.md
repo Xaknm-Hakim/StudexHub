@@ -1,5 +1,9 @@
 # BaruasHub Semester & Course API Update
 
+> Last Updated: 2026-05-10
+> Status: Archived / Legacy
+> Do not treat this document as the current API contract.
+
 *For Din — Updated backend usage guide for semester dropdown integration*
 
 This document explains the **new semester-based course flow** for BaruasHub.

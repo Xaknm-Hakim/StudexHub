@@ -1,9 +1,8 @@
-
 # Class Schedules API
 
-> Generated: 2026-04-18
-> Last Updated: 2026-04-18
-> Source: app/app/api/class-schedules
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: `app/app/api/class-schedules`, `app/app/api/class-schedules/[id]`
 
 ---
 
@@ -74,7 +73,7 @@ Authentication is enforced through `requireUserId()`.
 ### Notes
 
 * Results are sorted by `dayOfWeek` ascending, then `startTime` ascending.
-* The response is a raw array, not wrapped in `{ ok: true, data: ... }`.
+* The response is a raw array, not wrapped in `{ success: true, data: ... }`.
 * The `day` field is derived at response time using the weekday map:
 
   * `1` = Monday
@@ -82,7 +81,7 @@ Authentication is enforced through `requireUserId()`.
   * `3` = Wednesday
   * `4` = Thursday
   * `5` = Friday
-* ⚠️ This route does not include local `try/catch`, so unauthorized or unexpected errors rely on the surrounding application error handling.
+* Unauthorized and unexpected error response behavior is Needs verification because the route does not include local `try/catch`.
 
 ---
 
@@ -335,6 +334,7 @@ Authentication is enforced through `requireUserId()`.
 * The route first checks whether the schedule exists and belongs to the authenticated user.
 * Returns `404` if the schedule does not exist or does not belong to the authenticated user.
 * The success response uses `{ "success": true }`, not `{ "ok": true }`.
+* Unauthorized and unexpected error response behavior is Needs verification because the route does not include local `try/catch`.
 
 ### Common Error Responses
 

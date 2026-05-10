@@ -1,9 +1,8 @@
-
 # Courses API
 
-> Generated: 2026-04-18
-> Last Updated: 2026-04-18
-> Source: app/app/api/courses
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: `app/app/api/courses`, `app/app/api/courses/[courseId]`
 
 ---
 
@@ -41,7 +40,8 @@ Authentication is enforced through `requireUserId()`.
 
 ```json
 {
-  "courses": [
+  "success": true,
+  "data": [
     {
       "id": "course_001",
       "name": "Database",
@@ -66,26 +66,28 @@ Authentication is enforced through `requireUserId()`.
 
 | Field                     | Type             | Description                                      |
 | ------------------------- | ---------------- | ------------------------------------------------ |
-| `courses`                 | `array`          | List of courses owned by the authenticated user. |
-| `courses[].id`            | `string`         | Course ID.                                       |
-| `courses[].name`          | `string`         | Course name.                                     |
-| `courses[].code`          | `string \| null` | Optional course code.                            |
-| `courses[].credit`        | `number`         | Course credit value.                             |
-| `courses[].mark`          | `number \| null` | Numeric mark if available.                       |
-| `courses[].gradePoint`    | `number \| null` | Grade point derived from mark if available.      |
-| `courses[].semesterId`    | `string`         | Related semester ID.                             |
-| `courses[].createdAt`     | `string`         | Creation timestamp.                              |
-| `courses[].updatedAt`     | `string`         | Last update timestamp.                           |
-| `courses[].semester`      | `object`         | Related semester summary.                        |
-| `courses[].semester.id`   | `string`         | Semester ID.                                     |
-| `courses[].semester.slot` | `number`         | Semester slot number.                            |
-| `courses[].semester.name` | `string`         | Semester name.                                   |
+| `success`                | `boolean`        | Indicates successful request handling.           |
+| `data`                   | `array`          | List of courses owned by the authenticated user. |
+| `data[].id`              | `string`         | Course ID.                                       |
+| `data[].name`            | `string`         | Course name.                                     |
+| `data[].code`            | `string \| null` | Optional course code.                            |
+| `data[].credit`          | `number`         | Course credit value.                             |
+| `data[].mark`            | `number \| null` | Numeric mark if available.                       |
+| `data[].gradePoint`      | `number \| null` | Grade point derived from mark if available.      |
+| `data[].semesterId`      | `string`         | Related semester ID.                             |
+| `data[].createdAt`       | `string`         | Creation timestamp.                              |
+| `data[].updatedAt`       | `string`         | Last update timestamp.                           |
+| `data[].semester`        | `object`         | Related semester summary.                        |
+| `data[].semester.id`     | `string`         | Semester ID.                                     |
+| `data[].semester.slot`   | `number`         | Semester slot number.                            |
+| `data[].semester.name`   | `string`         | Semester name.                                   |
 
 ### Notes
 
 * Results are filtered through the course’s semester ownership, so only the authenticated user’s courses are returned.
 * Results are sorted by `createdAt` descending.
-* ⚠️ This route does not include local `try/catch`, so unauthorized or unexpected errors rely on the surrounding application error handling.
+* Unauthorized requests return `{ "success": false, "error": "Unauthorized" }`.
+* Unexpected failures return `{ "success": false, "error": "Failed to fetch courses" }`.
 
 ---
 
@@ -133,7 +135,8 @@ Authentication is enforced through `requireUserId()`.
 
 ```json
 {
-  "course": {
+  "success": true,
+  "data": {
     "id": "course_001",
     "name": "Database",
     "code": "DAT20103",
@@ -164,36 +167,42 @@ Authentication is enforced through `requireUserId()`.
   * `gradePoint = markToGradePoint(mark).point`
 * If the user does not yet have a semester for the requested slot, one is created automatically using `getSemesterName(semesterSlot)`.
 * The response includes related semester data.
+* Success returns `201`.
 
 ### Common Error Responses
 
 ```json
 {
+  "success": false,
   "error": "Invalid JSON"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "name is required"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "credit must be a positive integer"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "semesterSlot must be an integer from 0 to 5"
 }
 ```
 
 ```json
 {
-  "error": "mark must be an integer between 0 and 100"
+  "success": false,
+  "error": "mark must be between 0 and 100"
 }
 ```
 
@@ -225,7 +234,8 @@ Authentication is enforced through `requireUserId()`.
   "code": "DAT20103",
   "credit": 4,
   "mark": 80,
-  "semesterSlot": 3
+  "semesterSlot": 3,
+  "semesterId": "sem_002"
 }
 ```
 
@@ -238,12 +248,14 @@ Authentication is enforced through `requireUserId()`.
 | `credit`       | `number`         | No       | New positive integer credit value.                                 |
 | `mark`         | `number \| null` | No       | New mark. `null` or empty string clears both mark and grade point. |
 | `semesterSlot` | `number`         | No       | New semester slot. Must be an integer from `0` to `5`.             |
+| `semesterId`   | `string`         | No       | Existing semester ID. Must belong to the authenticated user.       |
 
 ### Response
 
 ```json
 {
-  "course": {
+  "success": true,
+  "data": {
     "id": "course_001",
     "name": "Advanced Database",
     "code": "DAT20103",
@@ -271,43 +283,57 @@ Authentication is enforced through `requireUserId()`.
   * `null` or empty string clears both `mark` and `gradePoint`
   * otherwise it is floored and mapped through the UTHM grading logic
 * If `semesterSlot` is provided and does not yet exist for the user, a new semester is created automatically.
+* If `semesterId` is provided, the referenced semester must belong to the authenticated user.
 * Returns `404` if the course does not exist or is not owned by the authenticated user.
 
 ### Common Error Responses
 
 ```json
 {
+  "success": false,
   "error": "Invalid JSON"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "Course not found"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "name cannot be empty"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "credit must be a positive integer"
 }
 ```
 
 ```json
 {
+  "success": false,
   "error": "semesterSlot must be an integer from 0 to 5"
 }
 ```
 
 ```json
 {
-  "error": "mark must be an integer between 0 and 100"
+  "success": false,
+  "error": "mark must be between 0 and 100"
+}
+```
+
+```json
+{
+  "success": false,
+  "error": "Invalid semesterId"
 }
 ```
 
@@ -341,7 +367,9 @@ Authentication is enforced through `requireUserId()`.
 
 ```json
 {
-  "success": true
+  "success": true,
+  "data": null,
+  "message": "Course deleted successfully"
 }
 ```
 
@@ -349,12 +377,20 @@ Authentication is enforced through `requireUserId()`.
 
 * The route first verifies that the course exists and belongs to the authenticated user through semester ownership.
 * Returns `404` if the course does not exist or is not owned by the authenticated user.
-* The success response uses `{ "success": true }`, not `{ "ok": true }`.
+* The success response follows the generic success wrapper with `data: null`.
 
 ### Common Error Responses
 
 ```json
 {
+  "success": false,
   "error": "Course not found"
+}
+```
+
+```json
+{
+  "success": false,
+  "error": "Failed to delete course"
 }
 ```

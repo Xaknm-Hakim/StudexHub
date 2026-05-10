@@ -1,5 +1,9 @@
 # BaruasHub API Reference
 
+> Last Updated: 2026-05-10
+> Status: Archived / Legacy
+> Do not treat this document as the current API contract.
+
 This document maps the currently shared API endpoints in `app/api` and explains what each endpoint is for.
 
 > Note: This reference is based only on the endpoint files provided in chat.  

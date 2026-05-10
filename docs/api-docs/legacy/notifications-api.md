@@ -1,3 +1,7 @@
+> Last Updated: 2026-05-10
+> Status: Archived / Legacy
+> Do not treat this document as the current API contract.
+
 Ah, that happened because the message likely **exceeded the response size**, so the markdown got cut off. Let’s do it properly.
 
 Below is the **complete `notification-api.md`** in one clean block so you can **copy-paste directly into `docs/notification-api.md`**.
@@ -6,6 +10,10 @@ Below is the **complete `notification-api.md`** in one clean block so you can **
 
 ```md
 # Notification API Documentation
+
+> Last Updated: 2026-05-10
+> Status: Archived / Legacy
+> Do not treat this document as the current API contract.
 
 This document explains how the **BaruasHub notification system APIs** work.
 

@@ -1,8 +1,8 @@
 # <Domain> API Documentation — StudexHub
 
-> Generated: <YYYY-MM-DD>
-> Last Updated: <YYYY-MM-DD>
-> Source: <Source Path>
+> Generated: 2026-05-10
+> Last Updated: 2026-05-10
+> Source: VERIFY
 
 ---
 
@@ -158,7 +158,7 @@ Document the actual implemented response shape.
 
 ```json
 {
-  "ok": true,
+  "success": true,
   "data": {
     "id": "<id>",
     "name": "<value>"
@@ -181,7 +181,7 @@ For raw array responses:
 
 | Field       | Type      | Description |
 | ----------- | --------- | ----------- |
-| `ok`        | `boolean` | Indicates successful request handling. |
+| `success`   | `boolean` | Indicates successful request handling. |
 | `data`      | `object`  | Response payload. |
 | `data.id`   | `string`  | Record ID. |
 | `data.name` | `string`  | Display name. |
@@ -200,7 +200,8 @@ Document validation that is implemented in the route.
 ### Notes
 
 * Results are scoped to the authenticated user.
-* The response is a raw array, not wrapped in `{ ok: true, data: ... }`.
+* The response is a raw array, not wrapped in `{ success: true, data: ... }`.
+* This route intentionally uses a route-specific shape such as `{ ok: true }`.
 * This route does not include local `try/catch`, so unauthorized or unexpected errors rely on surrounding application error handling.
 * Remove any notes that do not apply.
 

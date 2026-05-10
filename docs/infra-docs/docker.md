@@ -1,5 +1,9 @@
 # Docker Setup — StudexHub
 
+> Last Updated: 2026-05-10
+> Scope: Docker setup
+> Status: Active
+
 This document explains how the project runs using Docker, how the environment variables are structured, and how to perform common development tasks.
 
 ---
@@ -28,6 +32,10 @@ PostgreSQL container (baruashub-db)
    ▼
 Persistent database storage
 ```
+
+Current Compose files still use some `baruashub` identifiers for container names, database names, and volumes.
+
+VERIFY: Treat those as existing operational identifiers, not product naming guidance. Confirm before renaming any Docker resource.
 
 Docker Compose manages:
 
@@ -58,7 +66,8 @@ StudexHub/
 │       └─ .env.docker.example
 │
 └─ docs/
-    └─ docker.md
+    └─ infra-docs/
+        └─ docker.md
 ```
 
 ---
@@ -82,6 +91,8 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/baruashub
 AUTH_SECRET=local-secret
 COOKIE_SECURE=false
 ```
+
+VERIFY: Example values are placeholders. Use approved local environment values and do not commit real secrets.
 
 Used when running the app **outside Docker**.
 
@@ -114,6 +125,8 @@ DATABASE_URL=postgresql://postgres:postgres@db:5432/baruashub
 AUTH_SECRET=some-long-random-secret
 COOKIE_SECURE=false
 ```
+
+VERIFY: Example values are placeholders. Confirm the actual Docker database name, user, password, and runtime secrets from approved environment configuration.
 
 Key difference:
 
@@ -208,7 +221,9 @@ Open:
 http://localhost:5555
 ```
 
-Because PostgreSQL exposes port `5432`, the host can connect directly.
+The current production Compose file exposes PostgreSQL port `5432`.
+
+VERIFY: Confirm whether this exposure is intended in the active environment before relying on host access.
 
 ---
 
@@ -333,13 +348,15 @@ docker compose logs -f
 
 # Notes
 
-If Docker behaves strangely after structural changes, remove the Next.js build cache:
+If Docker behaves strangely after structural changes, the Next.js build cache may need to be removed:
 
 ```
 rm -rf app/.next
 ```
 
 Then rebuild the container.
+
+VERIFY: Confirm no needed local build artifacts are being preserved before deleting generated directories.
 
 ---
 

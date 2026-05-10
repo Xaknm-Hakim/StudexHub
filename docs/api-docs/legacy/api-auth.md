@@ -1,5 +1,9 @@
 # BaruasHub Auth API (Invite-only)
 
+> Last Updated: 2026-05-10
+> Status: Archived / Legacy
+> Do not treat this document as the current API contract.
+
 This document describes the backend auth endpoints for the frontend to integrate.
 
 ## Base URL

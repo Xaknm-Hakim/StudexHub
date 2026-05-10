@@ -1,14 +1,20 @@
 # System Architecture
 
+> Last Updated: 2026-05-10
+> Scope: System architecture
+> Status: Active
+
 This document explains the high‑level architecture of the StudexHub system: how the application is structured, how requests flow through the infrastructure, and how the main services interact with each other.
 
-The architecture is intentionally designed to mirror real production patterns while still being simple enough to run on a single homelab server.
+The architecture is intentionally documented around a single self-hosted server deployment model.
+
+VERIFY: Confirm the active production topology before treating this document as an exact live-environment map.
 
 ---
 
 # 1. High Level Overview
 
-StudexHub is a **self‑hosted full‑stack web application** composed of several layers:
+StudexHub is documented as a **self-hosted full-stack web application** composed of several layers:
 
 * Edge network (Cloudflare)
 * Reverse proxy (Nginx)
@@ -16,6 +22,8 @@ StudexHub is a **self‑hosted full‑stack web application** composed of severa
 * Database container (PostgreSQL)
 
 The application is deployed using **Docker Compose** on a Linux server.
+
+VERIFY: Confirm the current production host and service layout before using this as an operations source of truth.
 
 ---
 
@@ -286,7 +294,9 @@ Several architectural choices improve security:
 * Cloudflare Tunnel protects origin
 * authentication handled through secure cookies
 
-Future improvements may include:
+VERIFY: Confirm current firewall, router, and Docker port exposure before treating these as complete production guarantees.
+
+The following items are not documented as current implemented behavior:
 
 * rate limiting
 * request logging
@@ -294,9 +304,9 @@ Future improvements may include:
 
 ---
 
-# 8. Future Architecture Improvements
+# 8. Not Current Behavior
 
-Potential future enhancements include:
+The following items are not documented as current implemented behavior:
 
 * background worker service for scheduled jobs
 * message queue for notifications
@@ -304,4 +314,4 @@ Potential future enhancements include:
 * centralized logging
 * CI/CD deployment pipeline
 
-These improvements would further align the system with modern production architectures.
+VERIFY before documenting any of these as implemented.
